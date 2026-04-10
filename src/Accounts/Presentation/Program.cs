@@ -128,11 +128,11 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AccountDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
     if (!context.Users.Any())
     {
         logger.LogInformation("Seeding initial users...");
-        var hasher = new PasswordHasher();
 
         var instructor = new Domain.Entities.User
         {
