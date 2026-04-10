@@ -75,6 +75,7 @@ namespace Presentation.Controllers
         /// <returns>List of users (without password hash)</returns>
         [HttpGet]
         [ProducesResponseType(200)]
+        [Authorize(Roles = "Instructor")]
         public async Task<IActionResult> GetAllUsers([FromQuery] string? role = null)
         {
             IEnumerable<Domain.Entities.User> users;

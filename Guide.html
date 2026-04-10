@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Class Booking System – Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:       #0F2044;
+  --navy-mid:   #1B3A6B;
+  --teal:       #0B7A8A;
+  --teal-light: #D6F0F4;
+  --purple:     #4C2F87;
+  --purple-light:#EDE8F8;
+  --green:      #156A3A;
+  --green-light:#E2F4EA;
+  --amber:      #B45309;
+  --amber-light:#FEF3C7;
+  --red:        #9B1C1C;
+  --red-light:  #FEE2E2;
+  --ink:        #111827;
+  --muted:      #6B7280;
+  --border:     #E5E7EB;
+  --bg:         #F8FAFC;
+  --surface:    #FFFFFF;
+  --code-bg:    #0F2044;
+  --account-color: #1B3A6B;
+  --class-color:   #156A3A;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ── HEADER ──────────────────────────────────────────────── */
+.doc-header {
+  background: var(--navy);
+  color: white;
+  padding: 64px 80px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.doc-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(255,255,255,.02) 40px, rgba(255,255,255,.02) 80px);
+}
+.doc-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--teal), var(--purple), var(--teal));
+}
+.header-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+  letter-spacing: .2em; color: var(--teal-light); text-transform: uppercase; margin-bottom: 16px;
+}
+.doc-header h1 {
+  font-family: 'Playfair Display', serif; font-size: clamp(32px, 4vw, 52px);
+  font-weight: 900; line-height: 1.15; margin-bottom: 12px; position: relative;
+}
+.doc-header h1 em { font-style: italic; color: #7DD3E8; }
+.header-sub { font-size: 15px; color: rgba(255,255,255,.65); font-weight: 400; margin-bottom: 32px; }
+.header-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 99px; padding: 4px 14px; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: rgba(255,255,255,.8); letter-spacing: .05em;
+}
+
+/* ── LAYOUT & NAV ────────────────────────────────────────── */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+.toc-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 40px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 12px rgba(0,0,0,.06);
+}
+.toc-inner {
+  max-width: 1200px; margin: 0 auto; display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+}
+.toc-inner::-webkit-scrollbar { display: none; }
+.toc-link {
+  text-decoration: none; color: var(--muted); font-size: 12px; font-weight: 500;
+  letter-spacing: .04em; text-transform: uppercase; padding: 14px 18px;
+  border-bottom: 3px solid transparent; white-space: nowrap; transition: all .2s;
+}
+.toc-link:hover { color: var(--navy); border-color: var(--teal); }
+
+/* ── COLLAPSIBLE SECTIONS ────────────────────────────────── */
+section { padding: 40px 0; border-bottom: 1px solid var(--border); }
+.collapsible-header {
+  cursor: pointer; user-select: none; display: flex; justify-content: space-between;
+  align-items: center; padding: 16px 0;
+}
+.collapsible-header:hover .section-title { color: var(--teal); }
+.sec-chevron {
+  font-size: 18px; color: var(--muted); transition: transform 0.3s ease;
+}
+.section-wrapper.collapsed .sec-chevron, .sub-wrapper.sub-collapsed .sec-chevron {
+  transform: rotate(-90deg);
+}
+.section-wrapper.collapsed .collapsible-content, .sub-wrapper.sub-collapsed .sub-content {
+  display: none;
+}
+.collapsible-content { padding-top: 16px; padding-bottom: 32px; }
+
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .25em; text-transform: uppercase; color: var(--teal); margin-bottom: 4px;
+}
+.section-title {
+  font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700;
+  color: var(--navy); transition: color 0.2s;
+}
+.section-desc { font-size: 14px; color: var(--muted); margin-bottom: 32px; max-width: 680px; }
+
+/* ── OVERVIEW CARDS ──────────────────────────────────────── */
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 40px; }
+.ov-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px; position: relative; overflow: hidden;
+}
+.ov-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--teal); }
+.ov-card-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.ov-card-value { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--navy); }
+
+/* ── SERVICE MAP ─────────────────────────────────────────── */
+.svc-map { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+@media (max-width: 700px) { .svc-map { grid-template-columns: 1fr; } }
+.svc-card { border-radius: 16px; padding: 28px; border: 2px solid transparent; position: relative; overflow: hidden; }
+.svc-card.account { background: #EEF3FB; border-color: var(--account-color); }
+.svc-card.classes { background: #E8F4EE; border-color: var(--class-color); }
+.svc-tag {
+  display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 6px; margin-bottom: 12px;
+}
+.svc-tag.account { background: var(--account-color); color: white; }
+.svc-tag.classes { background: var(--class-color); color: white; }
+.svc-card h3 { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.svc-card.account h3 { color: var(--account-color); }
+.svc-card.classes h3 { color: var(--class-color); }
+.svc-card p { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.svc-meta { display: flex; flex-direction: column; gap: 6px; }
+.svc-meta-row { display: flex; gap: 8px; align-items: center; font-size: 12px; }
+.svc-meta-key { font-weight: 600; color: var(--ink); min-width: 90px; }
+.svc-meta-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); background: rgba(0,0,0,.06); padding: 2px 7px; border-radius: 4px; }
+
+/* ── FLOW DIAGRAM ─────────────────────────────────────────── */
+.flow-wrap { background: #0A1628; border-radius: 20px; padding: 40px 32px; overflow-x: auto; position: relative; border: 1px solid #1E3A5F; }
+.flow-title-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.flow-title-bar span { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.5); }
+.flow-dot { width: 10px; height: 10px; border-radius: 50%; }
+.flow-dot.r { background: #FF5F57; } .flow-dot.y { background: #FFBD2E; } .flow-dot.g { background: #28C840; }
+#systemFlow { width: 100%; min-width: 1060px; display: block; }
+
+/* Interactive legend styles */
+.flow-legend-item {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.flow-legend-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+.flow-legend-item.active {
+  background: rgba(255,255,255,0.15);
+  font-weight: 600;
+}
+.flow-legend-item .legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── MICROSERVICE DETAIL & SUBSECTIONS ───────────────────── */
+.ms-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; padding: 24px 28px; border-radius: 14px; }
+.ms-header.account { background: #EEF3FB; border-left: 5px solid var(--account-color); }
+.ms-header.classes { background: #E8F4EE; border-left: 5px solid var(--class-color); }
+.ms-badge { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; }
+.ms-badge.account { color: var(--account-color); } .ms-badge.classes { color: var(--class-color); }
+.ms-header-text h2 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+.ms-header-text p { font-size: 13px; color: var(--muted); margin: 0; }
+
+.sub-heading {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--navy-mid);
+  letter-spacing: .06em; text-transform: uppercase; margin: 40px 0 16px; display: flex; align-items: center; gap: 10px;
+  cursor: pointer; user-select: none;
+}
+.sub-heading::before { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── CLASS CARD ──────────────────────────────────────────── */
+.class-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+.class-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; transition: background .15s; }
+.class-card-header:hover { background: #F9FAFB; }
+.class-card-title { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--navy); }
+.class-card-note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.class-card .chevron { transition: transform .25s; color: var(--muted); font-size: 18px; }
+.class-card.open .chevron { transform: rotate(180deg); }
+.class-card-body { display: none; padding: 0 20px 20px; }
+.class-card.open .class-card-body { display: block; }
+.purpose-note { background: var(--teal-light); border-left: 3px solid var(--teal); border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 13px; color: #0B5A68; margin-bottom: 16px; }
+.purpose-note strong { color: var(--teal); }
+
+/* ── TABLES ──────────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px; }
+.data-table th { background: var(--navy); color: white; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 10px 14px; text-align: left; }
+.data-table th:first-child { border-radius: 8px 0 0 0; } .data-table th:last-child { border-radius: 0 8px 0 0; }
+.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.data-table tr:last-child td { border-bottom: none; } .data-table tr:nth-child(even) td { background: #FAFAFA; } .data-table tr:hover td { background: #F0F7FF; }
+.fn-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--teal); white-space: nowrap; }
+
+.ep-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+.ep-table th { background: var(--purple); color: white; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 10px 14px; text-align: left; }
+.ep-table th:first-child { border-radius: 8px 0 0 0; } .ep-table th:last-child { border-radius: 0 8px 0 0; }
+.ep-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.ep-table tr:last-child td { border-bottom: none; } .ep-table tr:nth-child(even) td { background: #FAFAFA; } .ep-table tr:hover td { background: #F5F0FF; }
+.method-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+.method-badge.GET    { background: #D1FAE5; color: #065F46; } .method-badge.POST   { background: #DBEAFE; color: #1E40AF; }
+.method-badge.PUT    { background: #FEF3C7; color: #92400E; } .method-badge.DELETE { background: #FEE2E2; color: #991B1B; }
+.route-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--navy); }
+.auth-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+.auth-badge.public     { background: #F3F4F6; color: var(--muted); } .auth-badge.any        { background: #DBEAFE; color: #1E40AF; }
+.auth-badge.member     { background: #D1FAE5; color: #065F46; } .auth-badge.instructor { background: var(--purple-light); color: var(--purple); }
+
+/* ── INFRA & TEST CARDS ──────────────────────────────────── */
+.infra-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.infra-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.infra-card-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.infra-card-sub { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-style: italic; }
+.infra-card p { font-size: 13px; color: #374151; }
+
+.test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.test-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--teal); border-radius: 8px; padding: 16px 18px; }
+.test-card-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.test-scenario { font-size: 12px; color: #374151; padding: 2px 0; display: flex; gap: 6px; align-items: flex-start; }
+.test-scenario::before { content: '→'; color: var(--teal); flex-shrink: 0; }
+
+/* ── TREE VIEW ───────────────────────────────────────────── */
+.tree-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+.tree-view { 
+  background: var(--navy); 
+  color: #A0B4D8; 
+  padding: 14px 16px; 
+  border-radius: 8px; 
+  font-family: 'JetBrains Mono', monospace; 
+  font-size: 11.5px; 
+  line-height: 1.18; 
+  overflow-x: auto; 
+  white-space: pre;
+}
+.tree-view .level-0 { color: #FFFFFF; font-weight: 700; }
+.tree-view .level-1 { color: #7DD3E8; }
+.tree-view .level-2 { color: #FBBF24; }
+.tree-view .level-3 { color: #6EE7B7; }
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+.doc-footer { background: var(--navy); color: rgba(255,255,255,.5); text-align: center; padding: 32px; font-size: 12px; font-family: 'JetBrains Mono', monospace; letter-spacing: .05em; }
+
+/* Flow detail styles - improved containment */
+.flow-detail-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  margin-bottom: 24px;
+}
+.flow-detail-card h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  margin-bottom: 16px;
+  letter-spacing: .05em;
+}
+.flow-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.flow-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.08);
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.flow-step .action {
+  flex: 1;
+  min-width: 180px;
+  font-weight: 500;
+}
+.flow-step .endpoint {
+  background: #D6F0F4;
+  color: #0B7A8A;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.flow-arrow {
+  font-size: 20px;
+  color: #7DD3E8;
+  line-height: 1;
+  padding: 0 4px;
+}
+.flow-result {
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(255,255,255,0.1);
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-left: auto;
+}
+
+/* Color coding for flow details */
+.controller-name { color: #6EE7B7; }
+.service-name { color: #FBBF24; font-weight: 600; }
+.method-name { color: #93C5FD; font-style: italic; }
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <div class="container">
+    <div class="header-label">Technical Architecture Document</div>
+    <h1>Fitness Class<br><em>Booking System</em></h1>
+    <p class="header-sub">Microservices Design · Service Classes · API Endpoints · System Flow — Karthineyan N</p>
+    <div class="header-pills">
+      <span class="pill">.NET 9</span>
+      <span class="pill">ASP.NET Core Web API</span>
+      <span class="pill">Entity Framework Core</span>
+      <span class="pill">JWT Auth</span>
+      <span class="pill">xUnit + Moq</span>
+      <span class="pill">Docker</span>
+      <span class="pill">Swagger</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc-bar">
+  <div class="toc-inner">
+    <a class="toc-link" href="#overview">Overview</a>
+    <a class="toc-link" href="#flow">System Flow</a>
+    <a class="toc-link" href="#account">AccountService</a>
+    <a class="toc-link" href="#class">ClassService</a>
+    <a class="toc-link" href="#infra">Infrastructure</a>
+    <a class="toc-link" href="#tests">Unit Tests</a>
+    <a class="toc-link" href="#projects">Project Structure</a>
+    <a class="toc-link" href="#summary">Summary</a>
+  </div>
+</nav>
+
+<section id="overview">
+  <div class="container section-wrapper collapsed">
+    <div class="collapsible-header" onclick="toggleSection(this)">
+      <div>
+        <div class="section-eyebrow">01 — System Overview</div>
+        <div class="section-title">Architecture at a Glance</div>
+      </div>
+      <span class="sec-chevron">▼</span>
+    </div>
+    
+    <div class="collapsible-content">
+      <p class="section-desc">Two bounded-context microservices communicating over HTTP, secured with JWT, backed by EF Core InMemory databases.</p>
+      <div class="overview-grid">
+        <div class="ov-card"><div class="ov-card-label">System</div><div class="ov-card-value">Fitness Class Booking</div></div>
+        <div class="ov-card"><div class="ov-card-label">Platform</div><div class="ov-card-value">.NET 9 / ASP.NET Core</div></div>
+        <div class="ov-card"><div class="ov-card-label">Architecture</div><div class="ov-card-value">Microservices (2 services)</div></div>
+        <div class="ov-card"><div class="ov-card-label">Auth</div><div class="ov-card-value">JWT Bearer / Role-Based</div></div>
+        <div class="ov-card"><div class="ov-card-label">Data Access</div><div class="ov-card-value">EF Core InMemory</div></div>
+        <div class="ov-card"><div class="ov-card-label">Async Pattern</div><div class="ov-card-value">async / await throughout</div></div>
+        <div class="ov-card"><div class="ov-card-label">Testing</div><div class="ov-card-value">xUnit + Moq</div></div>
+        <div class="ov-card"><div class="ov-card-label">Extras</div><div class="ov-card-value">Swagger · Docker · Logging</div></div>
+      </div>
+
+      <div class="svc-map">
+        <div class="svc-card account">
+          <div class="svc-tag account">🔐 Identity</div>
+          <h3>AccountAPI</h3>
+          <p>User registration, authentication, JWT issuance and role management. Issues tokens that unlock ClassAPI endpoints.</p>
+          <div class="svc-meta">
+            <div class="svc-meta-row"><span class="svc-meta-key">Port</span><span class="svc-meta-val">:5001</span></div>
+            <div class="svc-meta-row"><span class="svc-meta-key">DB</span><span class="svc-meta-val">AccountDb (InMemory)</span></div>
+            <div class="svc-meta-row"><span class="svc-meta-key">Entities</span><span class="svc-meta-val">User, Role</span></div>
+            <div class="svc-meta-row"><span class="svc-meta-key">Base Route</span><span class="svc-meta-val">api/auth · api/users</span></div>
+          </div>
+        </div>
+        <div class="svc-card classes">
+          <div class="svc-tag classes">📅 Scheduling</div>
+          <h3>ClassAPI</h3>
+          <p>Fitness class CRUD, booking logic, capacity enforcement. Calls AccountAPI to validate instructors cross-service.</p>
+          <div class="svc-meta">
+            <div class="svc-meta-row"><span class="svc-meta-key">Port</span><span class="svc-meta-val">:5002</span></div>
+            <div class="svc-meta-row"><span class="svc-meta-key">DB</span><span class="svc-meta-val">ClassDb (InMemory)</span></div>
+            <div class="svc-meta-row"><span class="svc-meta-key">Entities</span><span class="svc-meta-val">FitnessClass, Booking</span></div>
+            <div class="svc-meta-row"><span class="svc-meta-key">Base Route</span><span class="svc-meta-val">api/classes · api/bookings</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="flow" style="background: #0D1B38;">
+  <div class="container section-wrapper collapsed">
+    <div class="collapsible-header" onclick="toggleSection(this)">
+      <div>
+        <div class="section-eyebrow" style="color:#7DD3E8;">02 — System Flow</div>
+        <div class="section-title" style="color:white;">Data & Call Flow Between Services</div>
+      </div>
+      <span class="sec-chevron" style="color:white;">▼</span>
+    </div>
+
+    <div class="collapsible-content">
+      <p class="section-desc" style="color:rgba(255,255,255,.55);">End-to-end request paths properly ordered and color-coded. Services sit next to their corresponding controllers. <strong>Click any legend item below to toggle its visibility in the diagram.</strong></p>
+
+      <div class="flow-wrap">
+        <div class="flow-title-bar">
+          <div class="flow-dot r"></div><div class="flow-dot y"></div><div class="flow-dot g"></div>
+          <span>system-architecture.flow</span>
+        </div>
+
+        <svg id="systemFlow" viewBox="0 0 1160 840" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+          <defs>
+            <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ef4444"/></marker>
+            <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#3b82f6"/></marker>
+            <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#10b981"/></marker>
+            <marker id="arrowYellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#eab308"/></marker>
+            <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,.4)"/></filter>
+          </defs>
+
+          <rect x="20" y="20" width="160" height="580" rx="10" fill="rgba(76,47,135,.15)" stroke="rgba(76,47,135,.3)" stroke-width="1"/>
+          <text x="100" y="45" text-anchor="middle" fill="rgba(167,139,250,.6)" font-size="10" letter-spacing="2" font-weight="700">CLIENT</text>
+
+          <rect x="190" y="20" width="450" height="580" rx="10" fill="rgba(27,58,107,.2)" stroke="rgba(59,130,246,.25)" stroke-width="1"/>
+          <text x="415" y="45" text-anchor="middle" fill="rgba(96,165,250,.6)" font-size="10" letter-spacing="2" font-weight="700">ACCOUNT API  :5001</text>
+          <text x="260" y="70" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9">Controllers</text>
+          <text x="410" y="70" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9">Services</text>
+          <text x="560" y="70" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9">Repositories</text>
+
+          <rect x="650" y="20" width="490" height="580" rx="10" fill="rgba(21,106,58,.2)" stroke="rgba(52,211,153,.25)" stroke-width="1"/>
+          <text x="895" y="45" text-anchor="middle" fill="rgba(52,211,153,.6)" font-size="10" letter-spacing="2" font-weight="700">CLASS API  :5002</text>
+          <text x="725" y="70" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9">Controllers</text>
+          <text x="880" y="70" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9">Services</text>
+          <text x="1030" y="70" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9">Repositories</text>
+
+          <rect x="50" y="190" width="100" height="60" rx="8" fill="#4C2F87" filter="url(#shadow)"/>
+          <text x="100" y="220" text-anchor="middle" fill="white" font-size="12" font-weight="700">Client</text>
+          <text x="100" y="235" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="9">(App / Swagger)</text>
+
+          <rect x="210" y="100" width="110" height="50" rx="6" fill="#1B3A6B" stroke="#3B82F6" stroke-width="1.5"/>
+          <text x="265" y="123" text-anchor="middle" fill="#93C5FD" font-size="10" font-weight="700">AuthAPIController</text>
+          <text x="265" y="137" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="8">api/auth</text>
+
+          <rect x="210" y="380" width="110" height="50" rx="6" fill="#1B3A6B" stroke="#3B82F6" stroke-width="1.5"/>
+          <text x="265" y="403" text-anchor="middle" fill="#93C5FD" font-size="10" font-weight="700">UsersAPIController</text>
+          <text x="265" y="417" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="8">api/users</text>
+
+          <rect x="360" y="100" width="110" height="50" rx="6" fill="#0F2044" stroke="#60A5FA" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="415" y="123" text-anchor="middle" fill="#93C5FD" font-size="10" font-weight="600">AuthService</text>
+          <text x="415" y="137" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8">Business Logic</text>
+
+          <rect x="510" y="100" width="110" height="50" rx="6" fill="#0F2044" stroke="#60A5FA" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="565" y="123" text-anchor="middle" fill="#93C5FD" font-size="10" font-weight="600">UserRepository</text>
+          <text x="565" y="137" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8">EF Core</text>
+
+          <rect x="510" y="520" width="110" height="60" rx="8" fill="#B45309" filter="url(#shadow)"/>
+          <rect x="510" y="520" width="110" height="15" fill="#7C3D09" opacity="0.5" rx="8"/>
+          <text x="565" y="545" text-anchor="middle" fill="white" font-size="11" font-weight="700">AccountDb</text>
+          <text x="565" y="560" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="9">Users (InMemory)</text>
+
+          <rect x="670" y="100" width="120" height="50" rx="6" fill="#156A3A" stroke="#34D399" stroke-width="1.5"/>
+          <text x="730" y="123" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="700">ClassesAPIController</text>
+          <text x="730" y="137" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="8">api/classes</text>
+
+          <rect x="670" y="240" width="120" height="50" rx="6" fill="#156A3A" stroke="#34D399" stroke-width="1.5"/>
+          <text x="730" y="263" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="700">BookingsAPIController</text>
+          <text x="730" y="277" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="8">api/bookings</text>
+
+          <rect x="830" y="100" width="120" height="50" rx="6" fill="#0F3020" stroke="#34D399" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="890" y="123" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="600">ClassService</text>
+          <text x="890" y="137" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8">Rules / Search</text>
+
+          <rect x="830" y="240" width="120" height="50" rx="6" fill="#0F3020" stroke="#34D399" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="890" y="263" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="600">BookingService</text>
+          <text x="890" y="277" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8">Capacity Guard</text>
+
+          <rect x="830" y="380" width="120" height="50" rx="6" fill="#2D1B69" stroke="#A78BFA" stroke-width="1.5"/>
+          <text x="890" y="403" text-anchor="middle" fill="#C4B5FD" font-size="9" font-weight="700">AccountAPIClient</text>
+          <text x="890" y="417" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="8">IHttpClientFactory</text>
+
+          <rect x="990" y="100" width="110" height="50" rx="6" fill="#0F3020" stroke="#34D399" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="1045" y="123" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="600">ClassRepo</text>
+          <text x="1045" y="137" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8">EF Core</text>
+
+          <rect x="990" y="240" width="110" height="50" rx="6" fill="#0F3020" stroke="#34D399" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="1045" y="263" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="600">BookingRepo</text>
+          <text x="1045" y="277" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8">EF Core</text>
+
+          <rect x="990" y="520" width="110" height="60" rx="8" fill="#B45309" filter="url(#shadow)"/>
+          <rect x="990" y="520" width="110" height="15" fill="#7C3D09" opacity="0.5" rx="8"/>
+          <text x="1045" y="545" text-anchor="middle" fill="white" font-size="11" font-weight="700">ClassDb</text>
+          <text x="1045" y="560" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="9">Classes/Bookings (InMemory)</text>
+
+          <g id="flowNumbers">
+            <!-- Red: Auth & Registration Flow -->
+            <g id="flow-red" class="flow-group">
+              <path d="M 150 200 L 180 200 L 180 125 L 205 125" stroke="#ef4444" stroke-width="2" fill="none" marker-end="url(#arrowRed)"/>
+              <rect x="110" y="150" width="78" height="14" rx="7" fill="#ef4444"/>
+              <text x="149" y="160" text-anchor="middle" fill="white" font-size="7" font-weight="700">POST /register</text>
+              <circle cx="192" cy="125" r="7" fill="#ef4444"/><text x="192" y="128" fill="#fff" font-size="8" text-anchor="middle">1.1</text>
+
+              <path d="M 320 125 L 355 125" stroke="#ef4444" stroke-width="2" fill="none" marker-end="url(#arrowRed)"/>
+              <circle cx="337" cy="125" r="7" fill="#ef4444"/><text x="337" y="128" fill="#fff" font-size="8" text-anchor="middle">1.2</text>
+
+              <path d="M 470 125 L 505 125" stroke="#ef4444" stroke-width="2" fill="none" marker-end="url(#arrowRed)"/>
+              <circle cx="487" cy="125" r="7" fill="#ef4444"/><text x="487" y="128" fill="#fff" font-size="8" text-anchor="middle">1.3</text>
+
+              <path d="M 545 150 L 545 515" stroke="#ef4444" stroke-width="2" fill="none" marker-end="url(#arrowRed)"/>
+              <circle cx="545" cy="335" r="7" fill="#ef4444"/><text x="545" y="338" fill="#fff" font-size="8" text-anchor="middle">1.4</text>
+              <rect x="515" y="300" width="40" height="14" rx="7" fill="#B45309"/><text x="535" y="310" text-anchor="middle" fill="white" font-size="7" font-weight="700">EF Core</text>
+            </g>
+
+            <!-- Blue: Class & Booking Operations -->
+            <g id="flow-blue" class="flow-group">
+              <!-- 2.a Instructor Class Operations -->
+              <path d="M 150 220 L 195 220 L 195 90 L 635 90 L 635 115 L 665 115" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+              <rect x="380" y="83" width="56" height="14" rx="7" fill="#3b82f6"/>
+              <text x="408" y="93" text-anchor="middle" fill="white" font-size="7" font-weight="700">Bearer JWT</text>
+              <circle cx="650" cy="115" r="7" fill="#3b82f6"/><text x="650" y="118" fill="#fff" font-size="8" text-anchor="middle">2.a.1</text>
+
+              <path d="M 790 115 L 825 115" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+              <circle cx="810" cy="115" r="7" fill="#3b82f6"/><text x="810" y="118" fill="#fff" font-size="8" text-anchor="middle">2.a.2</text>
+
+              <path d="M 950 115 L 985 115" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+              <circle cx="970" cy="115" r="7" fill="#3b82f6"/><text x="970" y="118" fill="#fff" font-size="8" text-anchor="middle">2.a.3</text>
+
+              <!-- 2.b Member Booking Operations -->
+              <path d="M 150 240 L 165 240 L 165 265 L 665 265" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+              <rect x="380" y="258" width="78" height="14" rx="7" fill="#3b82f6"/>
+              <text x="419" y="268" text-anchor="middle" fill="white" font-size="7" font-weight="700">POST /bookings</text>
+              <circle cx="650" cy="265" r="7" fill="#3b82f6"/><text x="650" y="268" fill="#fff" font-size="8" text-anchor="middle">2.b.1</text>
+
+              <path d="M 790 265 L 825 265" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+              <circle cx="810" cy="265" r="7" fill="#3b82f6"/><text x="810" y="268" fill="#fff" font-size="8" text-anchor="middle">2.b.2</text>
+
+              <path d="M 950 265 L 985 265" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+              <circle cx="970" cy="265" r="7" fill="#3b82f6"/><text x="970" y="268" fill="#fff" font-size="8" text-anchor="middle">2.b.3</text>
+
+              <path d="M 1060 150 L 1060 515" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+              <circle cx="1060" cy="335" r="7" fill="#3b82f6"/><text x="1060" y="338" fill="#fff" font-size="8" text-anchor="middle">2.a.4</text>
+              <rect x="1030" y="300" width="40" height="14" rx="7" fill="#B45309"/><text x="1050" y="310" text-anchor="middle" fill="white" font-size="7" font-weight="700">EF Core</text>
+
+              <path d="M 1030 290 L 1030 515" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
+              <circle cx="1030" cy="405" r="7" fill="#3b82f6"/><text x="1030" y="408" fill="#fff" font-size="8" text-anchor="middle">2.b.4</text>
+            </g>
+
+            <!-- Green: Cross-Service Validation -->
+            <g id="flow-green" class="flow-group">
+              <path d="M 890 150 L 890 375" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+              <circle cx="890" cy="215" r="7" fill="#10b981"/><text x="890" y="218" fill="#fff" font-size="8" text-anchor="middle">3.1</text>
+              <rect x="836" y="195" width="48" height="14" rx="7" fill="#10b981"/><text x="860" y="205" text-anchor="middle" fill="white" font-size="6" font-weight="700">Validate</text>
+
+              <path d="M 830 405 L 325 405" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+              <circle cx="585" cy="405" r="7" fill="#10b981"/><text x="585" y="408" fill="#fff" font-size="8" text-anchor="middle">3.2</text>
+              <rect x="520" y="385" width="118" height="16" rx="8" fill="#10b981"/><text x="579" y="396" text-anchor="middle" fill="white" font-size="7" font-weight="700">GET /api/users/exists/{id}</text>
+              <rect x="535" y="415" width="88" height="14" rx="7" fill="#1E3A5F"/><text x="579" y="425" text-anchor="middle" fill="#60A5FA" font-size="7" font-weight="700">Cross-Service HTTP</text>
+
+              <path d="M 280 380 L 280 350 L 395 350 L 395 155" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+              <circle cx="395" cy="285" r="7" fill="#10b981"/><text x="395" y="288" fill="#fff" font-size="8" text-anchor="middle">3.3</text>
+
+              <path d="M 470 135 L 505 135" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+              <circle cx="487" cy="135" r="7" fill="#10b981"/><text x="487" y="138" fill="#fff" font-size="8" text-anchor="middle">3.4</text>
+              
+              <path d="M 585 150 L 585 515" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+              <circle cx="585" cy="335" r="7" fill="#10b981"/><text x="585" y="338" fill="#fff" font-size="8" text-anchor="middle">3.5</text>
+            </g>
+
+            <!-- Yellow: Dynamic Search -->
+            <g id="flow-yellow" class="flow-group">
+              <path d="M 100 250 L 100 480 L 710 480 L 710 155" stroke="#eab308" stroke-width="2" fill="none" marker-end="url(#arrowYellow)"/>
+              <circle cx="710" cy="460" r="7" fill="#eab308"/><text x="710" y="463" fill="#fff" font-size="8" text-anchor="middle">4.1</text>
+              <rect x="330" y="473" width="100" height="14" rx="7" fill="#eab308"/><text x="380" y="483" text-anchor="middle" fill="#000" font-size="7" font-weight="700">GET /classes/search</text>
+
+              <path d="M 745 150 L 745 190 L 850 190 L 850 155" stroke="#eab308" stroke-width="2" fill="none" marker-end="url(#arrowYellow)"/>
+              <circle cx="800" cy="190" r="7" fill="#eab308"/><text x="800" y="193" fill="#fff" font-size="8" text-anchor="middle">4.2</text>
+
+              <path d="M 915 150 L 915 190 L 1020 190 L 1020 155" stroke="#eab308" stroke-width="2" fill="none" marker-end="url(#arrowYellow)"/>
+              <circle cx="965" cy="190" r="7" fill="#eab308"/><text x="965" y="193" fill="#fff" font-size="8" text-anchor="middle">4.3</text>
+
+              <path d="M 1085 150 L 1085 515" stroke="#eab308" stroke-width="2" fill="none" marker-end="url(#arrowYellow)"/>
+              <circle cx="1085" cy="335" r="7" fill="#eab308"/><text x="1085" y="338" fill="#fff" font-size="8" text-anchor="middle">4.4</text>
+            </g>
+          </g>
+
+          <rect x="20" y="630" width="1120" height="190" rx="10" fill="rgba(10,22,40,.7)" stroke="rgba(30,58,95,.6)" stroke-width="1"/>
+          <text x="40" y="652" fill="rgba(255,255,255,.5)" font-size="9" font-weight="700" letter-spacing="2">FLOW LEGEND (Follow the numbers sequentially)</text>
+
+          <line x1="40" y1="672" x2="80" y2="672" stroke="#ef4444" stroke-width="2"/>
+          <circle cx="60" cy="672" r="5" fill="#ef4444"/>
+          <g id="legend-red" class="flow-legend-item" onclick="toggleFlow('red')" transform="translate(90,662)">
+            <text x="0" y="19" fill="#ef4444" font-size="10" font-weight="700">1. Auth & Registration Flow (Red)</text>
+          </g>
+          <text x="320" y="675" fill="rgba(255,255,255,.7)" font-size="9">Client → AuthAPIController → AuthService → UserRepository → AccountDb</text>
+
+          <line x1="40" y1="702" x2="80" y2="702" stroke="#3b82f6" stroke-width="2"/>
+          <circle cx="60" cy="702" r="5" fill="#3b82f6"/>
+          <g id="legend-blue" class="flow-legend-item" onclick="toggleFlow('blue')" transform="translate(90,692)">
+            <text x="0" y="19" fill="#3b82f6" font-size="10" font-weight="700">2. Class & Booking Operations (Blue)</text>
+          </g>
+          <text x="320" y="705" fill="rgba(255,255,255,.7)" font-size="9">Client → ClassesAPIController/BookingsAPIController → ClassService/BookingService → Repos → ClassDb</text>
+
+          <line x1="40" y1="732" x2="80" y2="732" stroke="#10b981" stroke-width="2"/>
+          <circle cx="60" cy="732" r="5" fill="#10b981"/>
+          <g id="legend-green" class="flow-legend-item" onclick="toggleFlow('green')" transform="translate(90,722)">
+            <text x="0" y="19" fill="#10b981" font-size="10" font-weight="700">3. Cross-Service Validation (Green)</text>
+          </g>
+          <text x="320" y="735" fill="rgba(255,255,255,.7)" font-size="9">ClassService → AccountAPIClient → UsersAPIController → AuthService → AccountDb</text>
+
+          <line x1="40" y1="762" x2="80" y2="762" stroke="#eab308" stroke-width="2"/>
+          <circle cx="60" cy="762" r="5" fill="#eab308"/>
+          <g id="legend-yellow" class="flow-legend-item" onclick="toggleFlow('yellow')" transform="translate(90,752)">
+            <text x="0" y="19" fill="#eab308" font-size="10" font-weight="700">4. Dynamic Search (Yellow)</text>
+          </g>
+          <text x="320" y="765" fill="rgba(255,255,255,.7)" font-size="9">Client → ClassesAPIController → ClassService → ClassRepo → ClassDb</text>
+
+          <rect x="760" y="640" width="360" height="170" rx="8" fill="rgba(27,58,107,.3)" stroke="rgba(59,130,246,.2)" stroke-width="1"/>
+          <text x="780" y="662" fill="rgba(96,165,250,.8)" font-size="9" font-weight="700" letter-spacing="2">BUSINESS RULES VALIDATED IN FLOWS</text>
+          <text x="780" y="682" fill="rgba(255,255,255,.65)" font-size="9">✓  2.4: BookedCount cannot exceed Capacity</text>
+          <text x="780" y="700" fill="rgba(255,255,255,.65)" font-size="9">✓  2.4: No duplicate booking (ClassId + MemberId)</text>
+          <text x="780" y="718" fill="rgba(255,255,255,.65)" font-size="9">✓  3.1: Instructor must exist in AccountAPI</text>
+          <text x="780" y="736" fill="rgba(255,255,255,.65)" font-size="9">✓  2.1: Only Instructors can create/update classes</text>
+          <text x="780" y="754" fill="rgba(255,255,255,.65)" font-size="9">✓  2.2: Only Members can book classes</text>
+          <text x="780" y="772" fill="rgba(255,255,255,.65)" font-size="9">✓  3.2: InstructorName denormalized on FitnessClass</text>
+          <text x="780" y="790" fill="rgba(255,255,255,.65)" font-size="9">✓  1.2: Passwords hashed before AccountDb storage</text>
+        </svg>
+      </div>
+
+      <!-- Revised Detailed Flow Breakdown -->
+      <div style="margin-top: 48px; padding: 24px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+        <div class="section-eyebrow" style="color:#7DD3E8;">Detailed Flow Breakdown</div>
+        <h3 style="color:white; font-size:24px; margin-bottom:24px;">Every Possible Flow in the System</h3>
+        <p style="color:rgba(255,255,255,.7); font-size:13px; max-width:860px; margin-bottom:24px;">From an expert technical architect perspective, the flows have been revised to precisely match the full requirement set. Each major flow is now strictly isolated in its own card with vertical step-by-step sequencing for clear containment and readability. Pagination is explicitly shown in Flow 4 (ClassService + ClassRepository).</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 28px;">
+          
+          <!-- Flow 1 Red -->
+          <div class="flow-detail-card">
+            <h4 style="color:#ef4444;">1. Auth & Registration Flow (Red)</h4>
+            <div class="flow-tree">
+              <div class="flow-step">
+                <div class="action">Client submits credentials via Postman / App</div>
+                <div class="flow-arrow">→</div>
+                <div class="endpoint">POST /api/auth/register<br><small>RegisterRequest {Username, Password, Role}</small></div>
+                <div class="flow-arrow">→</div>
+                <div><span class="controller-name">AuthAPIController</span> → <span class="service-name">AuthService</span>.<span class="method-name">RegisterAsync()</span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-result">AuthResponse {Token, Expiry, Username, Role}</div>
+              </div>
+              <div class="flow-step">
+                <div class="action">Client submits login credentials</div>
+                <div class="flow-arrow">→</div>
+                <div class="endpoint">POST /api/auth/login<br><small>LoginRequest {Username, Password}</small></div>
+                <div class="flow-arrow">→</div>
+                <div><span class="controller-name">AuthAPIController</span> → <span class="service-name">AuthService</span>.<span class="method-name">LoginAsync()</span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-result">AuthResponse {Token, Expiry, Username, Role} (or 401)</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Flow 2 Blue -->
+          <div class="flow-detail-card">
+            <h4 style="color:#3b82f6;">2. Class & Booking Operations (Blue)</h4>
+            <div class="flow-tree">
+              <div class="flow-step">
+                <div class="action">Instructor creates/updates/deletes class (role-checked via JWT)</div>
+                <div class="flow-arrow">→</div>
+                <div class="endpoint">POST /api/classes<br><small>CreateClassRequest {Title, Description, InstructorId, ScheduledAt, Capacity}</small></div>
+                <div class="flow-arrow">→</div>
+                <div><span class="controller-name">ClassesAPIController</span> → <span class="service-name">ClassService</span>.<span class="method-name">CreateClassAsync()</span> → AccountAPIClient.InstructorExistsAsync()</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-result">ClassResponse (or 400/403)</div>
+              </div>
+              <div class="flow-step">
+                <div class="action">Member books / cancels class (role-checked via JWT)</div>
+                <div class="flow-arrow">→</div>
+                <div class="endpoint">POST /api/bookings<br><small>BookingRequest {ClassId}</small></div>
+                <div class="flow-arrow">→</div>
+                <div><span class="controller-name">BookingsAPIController</span> → <span class="service-name">BookingService</span>.<span class="method-name">BookClassAsync()</span> (capacity + duplicate check)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-result">BookingResponse (or 409)</div>
+              </div>
+              <div class="flow-step">
+                <div class="action">Member views own bookings / booked classes (paginated)</div>
+                <div class="flow-arrow">→</div>
+                <div class="endpoint">GET /api/bookings<br>GET /api/classes</div>
+                <div class="flow-arrow">→</div>
+                <div><span class="controller-name">BookingsAPIController / ClassesAPIController</span> → <span class="service-name">BookingService</span>.<span class="method-name">GetBookingsForMemberAsync()</span> / <span class="service-name">ClassService</span>.<span class="method-name">GetClassesForMemberAsync()</span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-result">PagedResult&lt;ClassResponse&gt; / List&lt;BookingResponse&gt;</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Flow 3 Green -->
+          <div class="flow-detail-card">
+            <h4 style="color:#10b981;">3. Cross-Service Validation (Green)</h4>
+            <div class="flow-tree">
+              <div class="flow-step">
+                <div class="action">ClassService validates instructor before class creation/update</div>
+                <div class="flow-arrow">→</div>
+                <div class="endpoint">GET /api/users/exists/{id}</div>
+                <div class="flow-arrow">→</div>
+                <div><span class="service-name">AccountAPIClient</span> → <span class="controller-name">UsersAPIController</span> → <span class="service-name">AuthService</span>.<span class="method-name">UserExistsAsync()</span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-result">bool (true/false)</div>
+              </div>
+              <div class="flow-step">
+                <div class="action">ClassService fetches InstructorName for denormalization</div>
+                <div class="flow-arrow">→</div>
+                <div class="endpoint">GET /api/users/{id}</div>
+                <div class="flow-arrow">→</div>
+                <div><span class="service-name">AccountAPIClient</span> → <span class="controller-name">UsersAPIController</span> → <span class="service-name">AuthService</span>.<span class="method-name">GetUserByIdAsync()</span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-result">User (InstructorName extracted)</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Flow 4 Yellow -->
+          <div class="flow-detail-card">
+            <h4 style="color:#eab308;">4. Dynamic Search (Yellow)</h4>
+            <div class="flow-tree">
+              <div class="flow-step">
+                <div class="action">Authenticated client requests filtered/paginated class list</div>
+                <div class="flow-arrow">→</div>
+                <div class="endpoint">GET /api/classes/search?date=…&amp;instructorName=…&amp;page=…&amp;pageSize=…</div>
+                <div class="flow-arrow">→</div>
+                <div><span class="controller-name">ClassesAPIController</span> → <span class="service-name">ClassService</span>.<span class="method-name">SearchClassesAsync()</span> (pagination) → <span class="service-name">ClassRepository</span>.<span class="method-name">GetPagedAsync()</span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-result">PagedResult&lt;ClassResponse&gt;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="account">
+  <div class="container section-wrapper collapsed">
+    <div class="collapsible-header" onclick="toggleSection(this)">
+      <div>
+        <div class="section-eyebrow">03 — Microservice Detail</div>
+        <div class="section-title">AccountAPI</div>
+      </div>
+      <span class="sec-chevron">▼</span>
+    </div>
+    
+    <div class="collapsible-content">
+      <div class="ms-header account">
+        <div class="ms-badge account">AS</div>
+        <div class="ms-header-text">
+          <h2>AccountAPI Context</h2>
+          <p>Identity bounded context · Port :5001 · EF Core InMemory (AccountDb) · Entities: User, Role</p>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">Domain Models <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <table class="data-table">
+            <thead><tr><th>Model</th><th>Fields</th><th>Purpose Note</th></tr></thead>
+            <tbody>
+              <tr><td class="fn-name">User</td><td>Id (Guid), Username, PasswordHash, Role (enum)</td><td>Core identity aggregate. Stored in EF InMemory AccountDb.</td></tr>
+              <tr><td class="fn-name">Role (enum)</td><td>Member | Instructor</td><td>Drives authorization policy. Included as a JWT claim to unlock role-specific ClassAPI endpoints.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">DTOs <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <table class="data-table">
+            <thead><tr><th>DTO</th><th>Fields</th><th>Purpose Note</th></tr></thead>
+            <tbody>
+              <tr><td class="fn-name">LoginRequest</td><td>Username, Password</td><td>Inbound DTO for login endpoint. Never stored.</td></tr>
+              <tr><td class="fn-name">RegisterRequest</td><td>Username, Password, Role</td><td>Inbound DTO for registration. Password is hashed immediately; plain text is never persisted.</td></tr>
+              <tr><td class="fn-name">AuthResponse</td><td>Token (string), Expiry, Username, Role</td><td>Returned to caller on successful register or login. Contains the signed JWT + expiry for client-side token management.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">Service Classes <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IAuthService / AuthService</div>
+                <div class="class-card-note">Central orchestrator for all identity operations</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Orchestrates registration, login, and user queries. Depends on IUserRepository and IJwtTokenService. Keeps controllers thin.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">Task&lt;AuthResponse&gt; RegisterAsync(RegisterRequest req)</td><td>Validates username uniqueness, hashes password via IPasswordHasher, persists User, mints JWT and returns AuthResponse. Returns 409 Conflict if username taken.</td></tr>
+                  <tr><td class="fn-name">Task&lt;AuthResponse?&gt; LoginAsync(LoginRequest req)</td><td>Looks up user by username, verifies password hash (constant-time), delegates to IJwtTokenService to mint a signed JWT. Returns null if credentials invalid → controller maps to 401.</td></tr>
+                  <tr><td class="fn-name">Task&lt;User?&gt; GetUserByIdAsync(Guid id)</td><td>Retrieves User entity by PK. Used by UsersAPIController to serve instructor-existence checks from ClassAPI.</td></tr>
+                  <tr><td class="fn-name">Task&lt;IEnumerable&lt;User&gt;&gt; GetUsersByRoleAsync(Role role)</td><td>Returns all users of a given role. Powers the GET /api/users/instructors endpoint.</td></tr>
+                  <tr><td class="fn-name">Task&lt;bool&gt; UserExistsAsync(Guid id)</td><td>Lightweight Any() probe — avoids loading full entity. Called by ClassAPI before assigning an instructor to a new class.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IJwtTokenService / JwtTokenService</div>
+                <div class="class-card-note">Encapsulates all JWT creation and validation logic</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Keeps cryptographic JWT concerns out of AuthService. Lives in <code>Infrastructure/Security/</code> — single place to change signing algorithm, secret, or expiry policy.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">string GenerateToken(User user)</td><td>Builds a signed JWT with claims: sub (UserId), name (Username), role (Role). Uses HS256 with secret from appsettings.json. Returns compact serialized token string.</td></tr>
+                  <tr><td class="fn-name">ClaimsPrincipal? ValidateToken(string token)</td><td>Parses and validates a token for internal inspection (e.g., token refresh). Returns null if invalid or expired.</td></tr>
+                  <tr><td class="fn-name">DateTime GetTokenExpiry()</td><td>Returns configured token lifetime end. Surfaced in AuthResponse so clients know when to re-authenticate without trial-and-error.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IUserRepository / UserRepository</div>
+                <div class="class-card-note">EF Core data abstraction for User entities</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Abstracts EF Core operations. Enables unit testing by allowing mock injection without hitting the database.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">Task&lt;User?&gt; GetByIdAsync(Guid id)</td><td>Fetch single user by PK.</td></tr>
+                  <tr><td class="fn-name">Task&lt;User?&gt; GetByUsernameAsync(string name)</td><td>Used during login and registration uniqueness check.</td></tr>
+                  <tr><td class="fn-name">Task&lt;IEnumerable&lt;User&gt;&gt; GetByRoleAsync(Role role)</td><td>Filters users by role for instructor list endpoint.</td></tr>
+                  <tr><td class="fn-name">Task&lt;bool&gt; ExistsAsync(Guid id)</td><td>Existence probe — avoids loading full entity for lightweight checks.</td></tr>
+                  <tr><td class="fn-name">Task AddAsync(User user)</td><td>Persists a new User entity; calls SaveChangesAsync.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IPasswordHasher / PasswordHasher</div>
+                <div class="class-card-note">Thin wrapper around BCrypt — keeps hashing algorithm swappable</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Isolates hashing algorithm behind an interface. Lives in <code>Infrastructure/Security/</code> — swap BCrypt for Argon2 without touching AuthService.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">string Hash(string plainText)</td><td>Returns BCrypt hash of the plain-text password. Called at registration time.</td></tr>
+                  <tr><td class="fn-name">bool Verify(string plainText, string hash)</td><td>Constant-time comparison to prevent timing-based side-channel attacks. Called during login.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">Controllers & Endpoints <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">AuthAPIController &nbsp;[Route: api/auth]</div>
+                <div class="class-card-note">Public identity endpoints — no [Authorize] required</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Entry point for unauthenticated users. Accepts credentials, delegates to AuthService, returns JWT tokens that unlock all other services.</div>
+              <table class="ep-table">
+                <thead><tr><th>Method</th><th>Route</th><th>Auth</th><th>Service Call</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><span class="method-badge POST">POST</span></td>
+                    <td><span class="route-code">/api/auth/register</span></td>
+                    <td><span class="auth-badge public">Public</span></td>
+                    <td>AuthService.RegisterAsync()</td>
+                    <td>Accepts RegisterRequest DTO. Returns 201 + AuthResponse (JWT) on success. Returns 409 Conflict if username already taken.</td>
+                  </tr>
+                  <tr>
+                    <td><span class="method-badge POST">POST</span></td>
+                    <td><span class="route-code">/api/auth/login</span></td>
+                    <td><span class="auth-badge public">Public</span></td>
+                    <td>AuthService.LoginAsync()</td>
+                    <td>Accepts LoginRequest DTO. Returns 200 + AuthResponse on success. Returns 401 Unauthorized if credentials are invalid.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">UsersAPIController &nbsp;[Route: api/users]</div>
+                <div class="class-card-note">Internal endpoints consumed by ClassAPI over HTTP</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Serves instructor data to ClassAPI's AccountAPIClient. All endpoints require a valid JWT.</div>
+              <table class="ep-table">
+                <thead><tr><th>Method</th><th>Route</th><th>Auth</th><th>Service Call</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><span class="method-badge GET">GET</span></td>
+                    <td><span class="route-code">/api/users/{id}</span></td>
+                    <td><span class="auth-badge any">[Authorize]</span></td>
+                    <td>AuthService.GetUserByIdAsync()</td>
+                    <td>Returns User details (excluding PasswordHash). Used by ClassAPI to fetch InstructorName.</td>
+                  </tr>
+                  <tr>
+                    <td><span class="method-badge GET">GET</span></td>
+                    <td><span class="route-code">/api/users/exists/{id}</span></td>
+                    <td><span class="auth-badge any">[Authorize]</span></td>
+                    <td>AuthService.UserExistsAsync()</td>
+                    <td>Lightweight probe. ClassAPI calls this before assigning an instructor to a new class.</td>
+                  </tr>
+                  <tr>
+                    <td><span class="method-badge GET">GET</span></td>
+                    <td><span class="route-code">/api/users/instructors</span></td>
+                    <td><span class="auth-badge any">[Authorize]</span></td>
+                    <td>AuthService.GetUsersByRoleAsync(Instructor)</td>
+                    <td>Returns list of all instructors. Used to populate class-creation dropdowns.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="class">
+  <div class="container section-wrapper collapsed">
+    <div class="collapsible-header" onclick="toggleSection(this)">
+      <div>
+        <div class="section-eyebrow">04 — Microservice Detail</div>
+        <div class="section-title">ClassAPI</div>
+      </div>
+      <span class="sec-chevron">▼</span>
+    </div>
+
+    <div class="collapsible-content">
+      <div class="ms-header classes">
+        <div class="ms-badge classes">CS</div>
+        <div class="ms-header-text">
+          <h2>ClassAPI Context</h2>
+          <p>Scheduling bounded context · Port :5002 · EF Core InMemory (ClassDb) · Entities: FitnessClass, Booking</p>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">Domain Models <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <table class="data-table">
+            <thead><tr><th>Model</th><th>Fields</th><th>Purpose Note</th></tr></thead>
+            <tbody>
+              <tr><td class="fn-name">FitnessClass</td><td>Id (Guid), Title, Description, InstructorId (Guid), InstructorName, ScheduledAt (DateTime), Capacity (int), BookedCount (int)</td><td>Core aggregate root. InstructorName is denormalized. BookedCount is enforced at service layer.</td></tr>
+              <tr><td class="fn-name">Booking</td><td>Id (Guid), ClassId (Guid), MemberId (Guid), BookedAt (DateTime)</td><td>Join entity. Unique index on (ClassId, MemberId) enforces no-duplicate-booking.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">DTOs <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <table class="data-table">
+            <thead><tr><th>DTO</th><th>Fields</th><th>Purpose Note</th></tr></thead>
+            <tbody>
+              <tr><td class="fn-name">CreateClassRequest</td><td>Title, Description, InstructorId, ScheduledAt, Capacity</td><td>Inbound DTO for class creation. InstructorId is validated against AccountAPI.</td></tr>
+              <tr><td class="fn-name">UpdateClassRequest</td><td>Title, Description, ScheduledAt, Capacity</td><td>Partial update DTO. InstructorId is immutable after class creation.</td></tr>
+              <tr><td class="fn-name">ClassResponse</td><td>All FitnessClass fields + AvailableSlots (computed)</td><td>Outbound DTO. AvailableSlots = Capacity - BookedCount.</td></tr>
+              <tr><td class="fn-name">BookingRequest</td><td>ClassId</td><td>Member submits this to book a class. MemberId is extracted from JWT claims.</td></tr>
+              <tr><td class="fn-name">BookingResponse</td><td>BookingId, ClassId, ClassTitle, MemberId, BookedAt</td><td>Booking confirmation returned to Member.</td></tr>
+              <tr><td class="fn-name">PagedResult&lt;T&gt;</td><td>Items, TotalCount, Page, PageSize, TotalPages</td><td>Generic pagination envelope. Used by list/search endpoints.</td></tr>
+              <tr><td class="fn-name">ClassSearchRequest</td><td>Date? (nullable), InstructorName? (nullable), Page, PageSize</td><td>Query parameters for search endpoint.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">Service Classes <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IClassService / ClassService</div>
+                <div class="class-card-note">Primary orchestrator for class CRUD and business rules</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Owns all class lifecycle operations. Validates instructor existence via IAccountAPIClient.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">Task&lt;PagedResult&lt;ClassResponse&gt;&gt; GetClassesForMemberAsync(Guid memberId, int page, int pageSize)</td><td>Returns only classes booked by the authenticated member. Ensures members only see their own classes.</td></tr>
+                  <tr><td class="fn-name">Task&lt;ClassResponse?&gt; GetClassByIdAsync(Guid classId)</td><td>Returns a single class by ID. Returns null → controller maps to 404.</td></tr>
+                  <tr><td class="fn-name">Task&lt;ClassResponse&gt; CreateClassAsync(CreateClassRequest req, Guid requestingUserId)</td><td>Validates instructor exists via AccountAPIClient. Prevents Capacity ≤ 0. Persists FitnessClass.</td></tr>
+                  <tr><td class="fn-name">Task&lt;ClassResponse?&gt; UpdateClassAsync(Guid classId, UpdateClassRequest req, Guid requestingUserId)</td><td>Ensures requesting user is owner. Validates Capacity ≥ BookedCount.</td></tr>
+                  <tr><td class="fn-name">Task&lt;bool&gt; DeleteClassAsync(Guid classId, Guid requestingUserId)</td><td>Validates ownership. Hard deletes FitnessClass (cascades to Bookings).</td></tr>
+                  <tr><td class="fn-name">Task&lt;PagedResult&lt;ClassResponse&gt;&gt; SearchClassesAsync(ClassSearchRequest req)</td><td>Dynamic LINQ filter on Date and InstructorName. Applies pagination.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IBookingService / BookingService</div>
+                <div class="class-card-note">Encapsulates all booking business logic (SRP)</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Central enforcement point for capacity rules and duplicate booking prevention. Atomically commits changes.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">Task&lt;BookingResponse&gt; BookClassAsync(Guid memberId, BookingRequest req)</td><td>(1) Verify class (2) Check capacity (3) Check duplicate (4) Atomically increment BookedCount + insert Booking.</td></tr>
+                  <tr><td class="fn-name">Task&lt;IEnumerable&lt;BookingResponse&gt;&gt; GetBookingsForMemberAsync(Guid memberId)</td><td>Returns all bookings for a member. Used internally and via GET /api/bookings.</td></tr>
+                  <tr><td class="fn-name">Task&lt;bool&gt; CancelBookingAsync(Guid bookingId, Guid memberId)</td><td>Cancels booking: decrements BookedCount, deletes Booking row. Validates ownership.</td></tr>
+                  <tr><td class="fn-name">Task&lt;bool&gt; IsAlreadyBookedAsync(Guid classId, Guid memberId)</td><td>Lightweight duplicate check.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IClassRepository / ClassRepository</div>
+                <div class="class-card-note">EF Core data abstraction for FitnessClass entities</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> All EF Core operations for FitnessClass. Enables unit testing via mock injection.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">Task&lt;FitnessClass?&gt; GetByIdAsync(Guid id)</td><td>Fetch class by PK including Bookings navigation.</td></tr>
+                  <tr><td class="fn-name">Task&lt;IEnumerable&lt;FitnessClass&gt;&gt; GetByInstructorAsync(Guid instructorId)</td><td>Used for instructor dashboard — list own classes.</td></tr>
+                  <tr><td class="fn-name">Task&lt;IEnumerable&lt;FitnessClass&gt;&gt; SearchAsync(DateTime? date, string? instructorName)</td><td>Dynamic LINQ filter.</td></tr>
+                  <tr><td class="fn-name">Task&lt;IEnumerable&lt;FitnessClass&gt;&gt; GetPagedAsync(int skip, int take)</td><td>Paginated full-list query.</td></tr>
+                  <tr><td class="fn-name">Task AddAsync(FitnessClass cls)</td><td>Insert new FitnessClass.</td></tr>
+                  <tr><td class="fn-name">Task UpdateAsync(FitnessClass cls)</td><td>Update existing FitnessClass.</td></tr>
+                  <tr><td class="fn-name">Task DeleteAsync(Guid id)</td><td>Remove FitnessClass.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IBookingRepository / BookingRepository</div>
+                <div class="class-card-note">EF Core data abstraction for Booking entities</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> DB operations for Booking join table. DB enforces unique constraint.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">Task&lt;Booking?&gt; GetByIdAsync(Guid id)</td><td>Fetch booking by PK.</td></tr>
+                  <tr><td class="fn-name">Task&lt;bool&gt; ExistsAsync(Guid classId, Guid memberId)</td><td>Duplicate check — DB level mirror.</td></tr>
+                  <tr><td class="fn-name">Task&lt;IEnumerable&lt;Booking&gt;&gt; GetByMemberAsync(Guid memberId)</td><td>All bookings for a member.</td></tr>
+                  <tr><td class="fn-name">Task AddAsync(Booking booking)</td><td>Insert new Booking.</td></tr>
+                  <tr><td class="fn-name">Task DeleteAsync(Guid bookingId)</td><td>Remove Booking.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">IAccountAPIClient / AccountAPIClient</div>
+                <div class="class-card-note">HTTP client wrapper for cross-service calls</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Decouples ClassAPI from AccountAPI. Uses IHttpClientFactory.</div>
+              <table class="data-table">
+                <thead><tr><th>Function Signature</th><th>Calls AccountAPI Endpoint</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td class="fn-name">Task&lt;bool&gt; InstructorExistsAsync(Guid id)</td><td><span class="route-code">GET /api/users/exists/{id}</span></td><td>Prevents orphaned instructor references.</td></tr>
+                  <tr><td class="fn-name">Task&lt;string?&gt; GetInstructorNameAsync(Guid id)</td><td><span class="route-code">GET /api/users/{id}</span></td><td>Fetches Username for denormalization.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">Controllers & Endpoints <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">ClassesAPIController &nbsp;[Route: api/classes]</div>
+                <div class="class-card-note">Full CRUD + search — requires [Authorize]</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Manages fitness classes. Role-based policies applied per action.</div>
+              <table class="ep-table">
+                <thead><tr><th>Method</th><th>Route</th><th>Auth / Role</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/classes</span></td><td><span class="auth-badge member">Member</span></td><td>Paginated list of booked classes.</td></tr>
+                  <tr><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/classes/{id}</span></td><td><span class="auth-badge any">[Authorize]</span></td><td>Single class details.</td></tr>
+                  <tr><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/classes/search</span></td><td><span class="auth-badge any">[Authorize]</span></td><td>Filter by date/instructor.</td></tr>
+                  <tr><td><span class="method-badge POST">POST</span></td><td><span class="route-code">/api/classes</span></td><td><span class="auth-badge instructor">Instructor</span></td><td>Create a new class.</td></tr>
+                  <tr><td><span class="method-badge PUT">PUT</span></td><td><span class="route-code">/api/classes/{id}</span></td><td><span class="auth-badge instructor">Instructor</span></td><td>Update class details. Validates ownership.</td></tr>
+                  <tr><td><span class="method-badge DELETE">DELETE</span></td><td><span class="route-code">/api/classes/{id}</span></td><td><span class="auth-badge instructor">Instructor</span></td><td>Deletes a class. Validates ownership.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-card-header" onclick="toggleCard(this)">
+              <div>
+                <div class="class-card-title">BookingsAPIController &nbsp;[Route: api/bookings]</div>
+                <div class="class-card-note">Class booking by Members</div>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="class-card-body">
+              <div class="purpose-note"><strong>Purpose:</strong> Manages booking lifecycle. Enforces capacity limits and uniqueness. MemberId extracted from JWT.</div>
+              <table class="ep-table">
+                <thead><tr><th>Method</th><th>Route</th><th>Auth / Role</th><th>Purpose</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method-badge POST">POST</span></td><td><span class="route-code">/api/bookings</span></td><td><span class="auth-badge member">Member</span></td><td>Books a class. Prevents duplicate and full capacity.</td></tr>
+                  <tr><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/bookings</span></td><td><span class="auth-badge member">Member</span></td><td>Returns all bookings for the member.</td></tr>
+                  <tr><td><span class="method-badge DELETE">DELETE</span></td><td><span class="route-code">/api/bookings/{id}</span></td><td><span class="auth-badge member">Member</span></td><td>Cancels a booking.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="infra">
+  <div class="container section-wrapper collapsed">
+    <div class="collapsible-header" onclick="toggleSection(this)">
+      <div>
+        <div class="section-eyebrow">05 — Cross-Cutting Concerns</div>
+        <div class="section-title">Infrastructure & Shared Components</div>
+      </div>
+      <span class="sec-chevron">▼</span>
+    </div>
+    
+    <div class="collapsible-content">
+      <p class="section-desc">Components applied across both microservices — middleware, auth policies, HTTP clients, and tooling. Shared project contains DTOs, exceptions and middleware used by both AccountAPI and ClassAPI.</p>
+      <div class="infra-grid">
+        <div class="infra-card"><div class="infra-card-title">GlobalExceptionHandlerMiddleware</div><div class="infra-card-sub">Both Services (Shared)</div><p>Catches unhandled exceptions, returns ProblemDetails JSON. Maps domain exceptions to HTTP codes.</p></div>
+        <div class="infra-card"><div class="infra-card-title">RequestLoggingMiddleware</div><div class="infra-card-sub">Both Services (Shared)</div><p>Logs HTTP method, path, status code, elapsed time. Configurable per environment.</p></div>
+        <div class="infra-card"><div class="infra-card-title">JwtBearerMiddleware</div><div class="infra-card-sub">ClassAPI (+ AccountAPI) (Shared)</div><p>Validates Bearer token. Extracts UserId and Role claims for controller injection via HttpContext.User.</p></div>
+        <div class="infra-card"><div class="infra-card-title">Authorization Policies</div><div class="infra-card-sub">ClassAPI</div><p>"InstructorOnly" and "MemberOnly" policies applied via [Authorize(Policy="...")] on controllers.</p></div>
+        <div class="infra-card"><div class="infra-card-title">HttpClientFactory (typed)</div><div class="infra-card-sub">ClassAPI</div><p>Registers AccountAPIClient. Avoids socket exhaustion vs raw HttpClient instantiation.</p></div>
+        <div class="infra-card"><div class="infra-card-title">Swagger / SwaggerUI</div><div class="infra-card-sub">Development</div><p>Configured with JWT Bearer authentication scheme for easy testing of secured endpoints.</p></div>
+        <div class="infra-card"><div class="infra-card-title">Docker / docker-compose</div><div class="infra-card-sub">Deployment</div><p>Multi-stage Dockerfiles. Orchestrates both services, sets consistent environment variables.</p></div>
+        <div class="infra-card"><div class="infra-card-title">FitnessBooking.Shared</div><div class="infra-card-sub">Shared Project</div><p>Contains DTOs (AuthResponse, ClassResponse, PagedResult), Exceptions (DomainException), Middleware (GlobalExceptionHandlerMiddleware, RequestLoggingMiddleware, JwtBearerMiddleware).</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tests">
+  <div class="container section-wrapper collapsed">
+    <div class="collapsible-header" onclick="toggleSection(this)">
+      <div>
+        <div class="section-eyebrow">06 — Quality Assurance</div>
+        <div class="section-title">Unit Test Coverage</div>
+      </div>
+      <span class="sec-chevron">▼</span>
+    </div>
+
+    <div class="collapsible-content">
+      <p class="section-desc">xUnit + Moq. All dependencies mocked via interfaces. No database required for any unit test.</p>
+      <div class="test-grid">
+        <div class="test-card">
+          <div class="test-card-title">AuthServiceTests</div>
+          <div class="test-scenario">Register unique username → JWT returned</div>
+          <div class="test-scenario">Register duplicate username → exception (409)</div>
+          <div class="test-scenario">Login valid credentials → token</div>
+          <div class="test-scenario">Login wrong password/username → null (401)</div>
+        </div>
+        <div class="test-card">
+          <div class="test-card-title">JwtTokenServiceTests</div>
+          <div class="test-scenario">GenerateToken returns valid JWT</div>
+          <div class="test-scenario">Token contains proper claims & expiry</div>
+          <div class="test-scenario">ValidateToken returns null for tampered token</div>
+        </div>
+        <div class="test-card">
+          <div class="test-card-title">ClassServiceTests</div>
+          <div class="test-scenario">Create class valid instructor → ClassResponse</div>
+          <div class="test-scenario">Update capacity below BookedCount → exception (400)</div>
+          <div class="test-scenario">Update by non-owner → exception (403)</div>
+          <div class="test-scenario">Search by date/name returns filtered results</div>
+        </div>
+        <div class="test-card">
+          <div class="test-card-title">BookingServiceTests</div>
+          <div class="test-scenario">Book class with capacity → BookedCount incremented</div>
+          <div class="test-scenario">Duplicate/Full class booking → exception (409)</div>
+          <div class="test-scenario">Cancel own booking → BookedCount decremented</div>
+          <div class="test-scenario">Cancel other member's booking → exception (403)</div>
+        </div>
+        <div class="test-card">
+          <div class="test-card-title">Controller Tests</div>
+          <div class="test-scenario">POST /register valid → 201 + AuthResponse</div>
+          <div class="test-scenario">GET /classes Member → only booked classes</div>
+          <div class="test-scenario">POST /classes Member → 403 Forbidden</div>
+          <div class="test-scenario">DELETE /bookings/{id} → 204 No Content</div>
+        </div>
+        <div class="test-card">
+          <div class="test-card-title">AuthorizationTests (Bonus)</div>
+          <div class="test-scenario">Instructor endpoint with Member JWT → 403</div>
+          <div class="test-scenario">Member endpoint with Instructor JWT → 403</div>
+          <div class="test-scenario">Any endpoint with no/expired token → 401</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="container section-wrapper collapsed">
+    <div class="collapsible-header" onclick="toggleSection(this)">
+      <div>
+        <div class="section-eyebrow">07 — Source Control</div>
+        <div class="section-title">Project Trees</div>
+      </div>
+      <span class="sec-chevron">▼</span>
+    </div>
+
+    <div class="collapsible-content">
+      <p class="section-desc">Hierarchical view of the .NET projects organised under Clean Architecture. Each project is layered into Domain (entities + interfaces), Application (services + DTOs), Infrastructure (persistence + security/external services), and Presentation (controllers). Dependency direction is always inward — outer layers depend on inner ones, never the reverse.</p>
+      <div class="tree-grid">
+        <div class="tree-view">
+          <span class="level-0">AccountAPI.csproj</span><br>
+          ├── <span class="level-1">Domain/</span><br>
+          │   ├── <span class="level-2">Entities/</span><br>
+          │   │   └── <span class="level-3">User.cs</span><br>
+          │   └── <span class="level-2">Interfaces/</span><br>
+          │       ├── <span class="level-3">IUserRepository.cs</span><br>
+          │       ├── <span class="level-3">IAuthService.cs</span><br>
+          │       ├── <span class="level-3">IJwtTokenService.cs</span><br>
+          │       └── <span class="level-3">IPasswordHasher.cs</span><br>
+          ├── <span class="level-1">Application/</span><br>
+          │   ├── <span class="level-2">Services/</span><br>
+          │   │   └── <span class="level-3">AuthService.cs</span><br>
+          │   └── <span class="level-2">DTOs/</span><br>
+          │       └── <span class="level-3">Auth/</span><br>
+          │           ├── RegisterRequest.cs<br>
+          │           ├── LoginRequest.cs<br>
+          │           └── AuthResponse.cs<br>
+          ├── <span class="level-1">Infrastructure/</span><br>
+          │   ├── <span class="level-2">Persistence/</span><br>
+          │   │   ├── <span class="level-3">AccountDbContext.cs</span><br>
+          │   │   └── Repositories/<br>
+          │   │       └── UserRepository.cs<br>
+          │   └── <span class="level-2">Security/</span><br>
+          │       ├── <span class="level-3">JwtTokenService.cs</span><br>
+          │       └── <span class="level-3">PasswordHasher.cs</span><br>
+          ├── <span class="level-1">Presentation/</span><br>
+          │   └── <span class="level-2">Controllers/</span><br>
+          │       ├── <span class="level-3">AuthAPIController.cs</span><br>
+          │       └── <span class="level-3">UsersAPIController.cs</span><br>
+          ├── <span class="level-1">Program.cs</span><br>
+          └── <span class="level-1">Dockerfile</span>
+        </div>
+        <div class="tree-view">
+          <span class="level-0">ClassAPI.csproj</span><br>
+          ├── <span class="level-1">Domain/</span><br>
+          │   ├── <span class="level-2">Entities/</span><br>
+          │   │   ├── <span class="level-3">FitnessClass.cs</span><br>
+          │   │   └── <span class="level-3">Booking.cs</span><br>
+          │   └── <span class="level-2">Interfaces/</span><br>
+          │       ├── <span class="level-3">IClassRepository.cs</span><br>
+          │       ├── <span class="level-3">IBookingRepository.cs</span><br>
+          │       ├── <span class="level-3">IClassService.cs</span><br>
+          │       └── <span class="level-3">IBookingService.cs</span><br>
+          ├── <span class="level-1">Application/</span><br>
+          │   ├── <span class="level-2">Services/</span><br>
+          │   │   ├── <span class="level-3">ClassService.cs</span><br>
+          │   │   └── <span class="level-3">BookingService.cs</span><br>
+          │   └── <span class="level-2">DTOs/</span><br>
+          │       ├── <span class="level-3">Class/</span><br>
+          │       │   ├── CreateClassRequest.cs<br>
+          │       │   ├── UpdateClassRequest.cs<br>
+          │       │   ├── ClassResponse.cs<br>
+          │       │   └── ClassSearchRequest.cs<br>
+          │       ├── <span class="level-3">Booking/</span><br>
+          │       │   ├── BookingRequest.cs<br>
+          │       │   └── BookingResponse.cs<br>
+          │       └── <span class="level-3">PagedResult.cs</span><br>
+          ├── <span class="level-1">Infrastructure/</span><br>
+          │   ├── <span class="level-2">Persistence/</span><br>
+          │   │   ├── <span class="level-3">ClassDbContext.cs</span><br>
+          │   │   └── Repositories/<br>
+          │   │       ├── ClassRepository.cs<br>
+          │   │       └── BookingRepository.cs<br>
+          │   └── <span class="level-2">ExternalServices/</span><br>
+          │       ├── <span class="level-3">IAccountAPIClient.cs</span><br>
+          │       └── <span class="level-3">AccountAPIClient.cs</span><br>
+          ├── <span class="level-1">Presentation/</span><br>
+          │   └── <span class="level-2">Controllers/</span><br>
+          │       ├── <span class="level-3">ClassesAPIController.cs</span><br>
+          │       └── <span class="level-3">BookingsAPIController.cs</span><br>
+          ├── <span class="level-1">Program.cs</span><br>
+          └── <span class="level-1">Dockerfile</span>
+        </div>
+        <div class="tree-view">
+          <span class="level-0">FitnessBooking.Shared.csproj</span><br>
+          ├── <span class="level-1">DTOs/</span><br>
+          │   ├── <span class="level-2">Auth/</span><br>
+          │   │   └── <span class="level-3">AuthResponse.cs</span><br>
+          │   ├── <span class="level-2">Class/</span><br>
+          │   │   └── <span class="level-3">ClassResponse.cs</span><br>
+          │   └── <span class="level-2">PagedResult.cs</span><br>
+          ├── <span class="level-1">Exceptions/</span><br>
+          │   └── <span class="level-2">DomainException.cs</span><br>
+          └── <span class="level-1">Middleware/</span><br>
+              ├── <span class="level-2">GlobalExceptionHandlerMiddleware.cs</span><br>
+              ├── <span class="level-2">RequestLoggingMiddleware.cs</span><br>
+              └── <span class="level-2">JwtBearerMiddleware.cs</span>
+        </div>
+        <div class="tree-view">
+          <span class="level-0">Tests</span><br>
+          ├── <span class="level-1">AccountAPI.Tests/</span><br>
+          │   ├── <span class="level-2">Application/</span><br>
+          │   │   └── <span class="level-3">AuthServiceTests.cs</span><br>
+          │   └── <span class="level-2">Presentation/</span><br>
+          │       └── <span class="level-3">AuthAPIControllerTests.cs</span><br>
+          └── <span class="level-1">ClassAPI.Tests/</span><br>
+              ├── <span class="level-2">Application/</span><br>
+              │   ├── <span class="level-3">ClassServiceTests.cs</span><br>
+              │   └── <span class="level-3">BookingServiceTests.cs</span><br>
+              └── <span class="level-2">Presentation/</span><br>
+                  └── <span class="level-3">ClassesAPIControllerTests.cs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="summary">
+  <div class="container section-wrapper collapsed">
+    <div class="collapsible-header" onclick="toggleSection(this)">
+      <div>
+        <div class="section-eyebrow">08 — Quick Reference</div>
+        <div class="section-title">Summary & Architecture Decisions</div>
+      </div>
+      <span class="sec-chevron">▼</span>
+    </div>
+
+    <div class="collapsible-content">
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">Endpoint Summary <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <table class="ep-table">
+            <thead><tr><th>Project</th><th>Controller</th><th>Method</th><th>Route</th><th>Auth</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>AccountAPI</td><td>AuthAPIController</td><td><span class="method-badge POST">POST</span></td><td><span class="route-code">/api/auth/register</span></td><td><span class="auth-badge public">Public</span></td><td>Create account, return JWT</td></tr>
+              <tr><td>AccountAPI</td><td>AuthAPIController</td><td><span class="method-badge POST">POST</span></td><td><span class="route-code">/api/auth/login</span></td><td><span class="auth-badge public">Public</span></td><td>Authenticate, return JWT</td></tr>
+              <tr><td>AccountAPI</td><td>UsersAPIController</td><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/users/{id}</span></td><td><span class="auth-badge any">[Authorize]</span></td><td>Get user details by ID</td></tr>
+              <tr><td>AccountAPI</td><td>UsersAPIController</td><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/users/exists/{id}</span></td><td><span class="auth-badge any">[Authorize]</span></td><td>Lightweight instructor existence check</td></tr>
+              <tr><td>AccountAPI</td><td>UsersAPIController</td><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/users/instructors</span></td><td><span class="auth-badge any">[Authorize]</span></td><td>List all instructors</td></tr>
+              <tr><td>ClassAPI</td><td>ClassesAPIController</td><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/classes</span></td><td><span class="auth-badge member">Member</span></td><td>Member's booked classes (paginated)</td></tr>
+              <tr><td>ClassAPI</td><td>ClassesAPIController</td><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/classes/{id}</span></td><td><span class="auth-badge any">[Authorize]</span></td><td>Single class details</td></tr>
+              <tr><td>ClassAPI</td><td>ClassesAPIController</td><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/classes/search</span></td><td><span class="auth-badge any">[Authorize]</span></td><td>Filter by date/instructor (paginated)</td></tr>
+              <tr><td>ClassAPI</td><td>ClassesAPIController</td><td><span class="method-badge POST">POST</span></td><td><span class="route-code">/api/classes</span></td><td><span class="auth-badge instructor">Instructor</span></td><td>Create a fitness class</td></tr>
+              <tr><td>ClassAPI</td><td>ClassesAPIController</td><td><span class="method-badge PUT">PUT</span></td><td><span class="route-code">/api/classes/{id}</span></td><td><span class="auth-badge instructor">Instructor</span></td><td>Update class details. Validates ownership.</td></tr>
+              <tr><td>ClassAPI</td><td>ClassesAPIController</td><td><span class="method-badge DELETE">DELETE</span></td><td><span class="route-code">/api/classes/{id}</span></td><td><span class="auth-badge instructor">Instructor</span></td><td>Deletes a class. Validates ownership.</td></tr>
+              <tr><td>ClassAPI</td><td>BookingsAPIController</td><td><span class="method-badge POST">POST</span></td><td><span class="route-code">/api/bookings</span></td><td><span class="auth-badge member">Member</span></td><td>Books a class. Prevents duplicate and full capacity.</td></tr>
+              <tr><td>ClassAPI</td><td>BookingsAPIController</td><td><span class="method-badge GET">GET</span></td><td><span class="route-code">/api/bookings</span></td><td><span class="auth-badge member">Member</span></td><td>Returns all bookings for the member.</td></tr>
+              <tr><td>ClassAPI</td><td>BookingsAPIController</td><td><span class="method-badge DELETE">DELETE</span></td><td><span class="route-code">/api/bookings/{id}</span></td><td><span class="auth-badge member">Member</span></td><td>Cancels a booking.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub-wrapper sub-collapsed">
+        <div class="sub-heading" onclick="toggleSub(this)">Key Architectural Decisions <span class="sec-chevron">▼</span></div>
+        <div class="sub-content">
+          <div class="infra-grid">
+            <div class="infra-card" style="border-left: 4px solid var(--teal);">
+              <div class="infra-card-title">InstructorName Denormalization</div>
+              <p>InstructorName stored on FitnessClass avoids cross-service HTTP calls on every search query. Written once at class creation.</p>
+            </div>
+            <div class="infra-card" style="border-left: 4px solid var(--purple);">
+              <div class="infra-card-title">MemberId from JWT</div>
+              <p>MemberId extracted from HttpContext.User claims, never from request body. Prevents booking on behalf of others.</p>
+            </div>
+            <div class="infra-card" style="border-left: 4px solid var(--green);">
+              <div class="infra-card-title">Repository Pattern</div>
+              <p>Enables full unit test coverage without DB setup. Interfaces in <code>Domain/Interfaces/</code>; implementations in <code>Infrastructure/Persistence/Repositories/</code>. Controllers depend on services; services depend on repos.</p>
+            </div>
+            <div class="infra-card" style="border-left: 4px solid var(--amber);">
+              <div class="infra-card-title">BookedCount Atomicity</div>
+              <p>BookedCount increment and Booking insert happen in single EF SaveChanges transaction to prevent race conditions.</p>
+            </div>
+            <div class="infra-card" style="border-left: 4px solid var(--navy-mid);">
+              <div class="infra-card-title">Clean Architecture Layering</div>
+              <p>Each service is split into Domain → Application → Infrastructure → Presentation. Security concerns (JWT, password hashing) are isolated in <code>Infrastructure/Security/</code>. Dependency direction is always inward.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="doc-footer">
+  <div>Fitness Class Booking System · Technical Architecture · .NET 9 · Karthineyan N</div>
+  <div style="margin-top:6px; opacity:.5">AccountAPI :5001 · ClassAPI :5002 · EF Core InMemory · JWT Bearer · xUnit + Docker</div>
+</footer>
+
+<script>
+function toggleSection(header) {
+  const wrapper = header.closest('.section-wrapper');
+  wrapper.classList.toggle('collapsed');
+}
+function toggleSub(header) {
+  const wrapper = header.closest('.sub-wrapper');
+  wrapper.classList.toggle('sub-collapsed');
+}
+function toggleCard(header) {
+  const card = header.closest('.class-card');
+  card.classList.toggle('open');
+}
+
+// Toggle specific flow group visibility
+function toggleFlow(color) {
+  const flowGroup = document.getElementById(`flow-${color}`);
+  const legendItem = document.getElementById(`legend-${color}`);
+  
+  if (!flowGroup || !legendItem) return;
+  
+  const isHidden = flowGroup.getAttribute('display') === 'none';
+  
+  if (isHidden) {
+    flowGroup.setAttribute('display', 'inline');
+    legendItem.classList.add('active');
+  } else {
+    flowGroup.setAttribute('display', 'none');
+    legendItem.classList.remove('active');
+  }
+}
+
+// Initialize: all flows visible and legends active
+document.addEventListener('DOMContentLoaded', () => {
+  const colors = ['red', 'blue', 'green', 'yellow'];
+  colors.forEach(color => {
+    const group = document.getElementById(`flow-${color}`);
+    if (group) group.setAttribute('display', 'inline');
+    
+    const legend = document.getElementById(`legend-${color}`);
+    if (legend) legend.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
