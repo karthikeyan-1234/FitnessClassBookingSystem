@@ -3,9 +3,15 @@
     <Project Path="src/Shared/Shared.csproj" />
   </Folder>
   <Folder Name="/src/Accounts/">
-    <Project Path="src/Accounts/Domain/Domain.csproj" />
     <Project Path="src/Accounts/Application/Application.csproj" />
+    <Project Path="src/Accounts/Domain/Domain.csproj" />
     <Project Path="src/Accounts/Infrastructure/Infrastructure.csproj" />
     <Project Path="src/Accounts/Presentation/Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Classes/">
+    <Project Path="src/Classes/Application/Application.csproj" Id="c6de7375-064f-487e-93f1-199654b6f317" />
+    <Project Path="src/Classes/Domain/Domain.csproj" Id="d5511dc2-a1ba-4609-8342-98f4b4ce6bff" />
+    <Project Path="src/Classes/Infrastructure/Infrastructure.csproj" Id="8cf61a6e-36e1-4f96-a177-98f3cb941a1f" />
+    <Project Path="src/Classes/Presentation/Presentation.csproj" Id="b9ead5ec-8f55-4637-a6f1-912cfc879a2d" />
   </Folder>
 </Solution>
