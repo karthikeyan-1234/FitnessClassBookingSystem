@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-using Application.DTOs;
+
 using Application.Interfaces;
 
 using Microsoft.Extensions.Configuration;
@@ -13,6 +13,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure
 {
+    public record UserResponse
+    {
+        public Guid Id { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+    }
+
     public class AccountAPIClient : IAccountAPIClient
     {
         private readonly HttpClient _httpClient;

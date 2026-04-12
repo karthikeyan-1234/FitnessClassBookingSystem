@@ -35,7 +35,7 @@ namespace Presentation.Controllers
         /// Gets paginated list of classes booked by the authenticated member.
         /// </summary>
         [HttpGet]
-        [Authorize(Policy = "MemberOnly")]
+        [Authorize(Roles = "Member")]
         public async Task<ActionResult<PagedResult<ClassResponse>>> GetMemberClasses(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
@@ -90,7 +90,7 @@ namespace Presentation.Controllers
         /// Creates a new class (Instructor only).
         /// </summary>
         [HttpPost]
-        [Authorize(Policy = "InstructorOnly")]
+        [Authorize(Roles = "Instructor")]
         public async Task<ActionResult<ClassResponse>> CreateClass([FromBody] CreateClassRequest request)
         {
             var instructorId = GetCurrentUserId();
@@ -102,7 +102,7 @@ namespace Presentation.Controllers
         /// Updates an existing class (Instructor only, must be owner).
         /// </summary>
         [HttpPut("{id}")]
-        [Authorize(Policy = "InstructorOnly")]
+        [Authorize(Roles = "Instructor")]
         public async Task<ActionResult<ClassResponse>> UpdateClass(Guid id, [FromBody] UpdateClassRequest request)
         {
             var instructorId = GetCurrentUserId();
@@ -116,7 +116,7 @@ namespace Presentation.Controllers
         /// Deletes a class (Instructor only, must be owner).
         /// </summary>
         [HttpDelete("{id}")]
-        [Authorize(Policy = "InstructorOnly")]
+        [Authorize(Roles = "Instructor")]
         public async Task<IActionResult> DeleteClass(Guid id)
         {
             var instructorId = GetCurrentUserId();
