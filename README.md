@@ -32,9 +32,9 @@ docker run -d `
   fcbs-accounts:stable
 ```
 
-### Access URL
+### Access Swagger URL
 
-**[Swagger UI](http://localhost:8080/swagger/index.html)**
+**http://localhost:8080/swagger/index.html**
 
 ## 2. Classes API
 
@@ -59,9 +59,9 @@ docker run -d `
   fcbs-classes:stable
 ```
 
-### Access URL
+### Access Swagger URL
 
-**[Swagger UI](http://localhost:8090/swagger/index.html)**
+**http://localhost:8090/swagger/index.html**
 
 ## 💡 Quick Tips
 
