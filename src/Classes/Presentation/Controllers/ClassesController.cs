@@ -21,19 +21,9 @@ namespace Presentation.Controllers
         public ClassesController(IClassService classService)
         {
             _classService = classService;
-        }
+        }        
 
-        private Guid GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-                throw new UnauthorizedAccessException("User ID not found in token");
-            return userId;
-        }
-
-        /// <summary>
-        /// Gets paginated list of classes booked by the authenticated member.
-        /// </summary>
+        // Gets paginated list of classes booked by the authenticated member.
         [HttpGet]
         [Authorize(Roles = "Member")]
         public async Task<ActionResult<PagedResult<ClassResponse>>> GetMemberClasses(
@@ -49,9 +39,7 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Gets a single class by ID.
-        /// </summary>
+        // Gets a single class by ID.
         [HttpGet("{id}")]
         public async Task<ActionResult<ClassResponse>> GetClassById(Guid id)
         {
@@ -61,9 +49,7 @@ namespace Presentation.Controllers
             return Ok(classResponse);
         }
 
-        /// <summary>
-        /// Searches classes by date and/or instructor name (paginated).
-        /// </summary>
+        // Searches classes by date and/or instructor name (paginated).
         [HttpGet("search")]
         public async Task<ActionResult<PagedResult<ClassResponse>>> SearchClasses(
             [FromQuery] DateTime? date,
@@ -86,9 +72,7 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Creates a new class (Instructor only).
-        /// </summary>
+        // Creates a new class (Instructor only).
         [HttpPost]
         [Authorize(Roles = "Instructor")]
         public async Task<ActionResult<ClassResponse>> CreateClass([FromBody] CreateClassRequest request)
@@ -98,9 +82,7 @@ namespace Presentation.Controllers
             return CreatedAtAction(nameof(GetClassById), new { id = created.Id }, created);
         }
 
-        /// <summary>
-        /// Updates an existing class (Instructor only, must be owner).
-        /// </summary>
+        // Updates an existing class (Instructor only, must be owner).
         [HttpPut("{id}")]
         [Authorize(Roles = "Instructor")]
         public async Task<ActionResult<ClassResponse>> UpdateClass(Guid id, [FromBody] UpdateClassRequest request)
@@ -112,9 +94,7 @@ namespace Presentation.Controllers
             return Ok(updated);
         }
 
-        /// <summary>
-        /// Deletes a class (Instructor only, must be owner).
-        /// </summary>
+        // Deletes a class (Instructor only, must be owner).
         [HttpDelete("{id}")]
         [Authorize(Roles = "Instructor")]
         public async Task<IActionResult> DeleteClass(Guid id)
@@ -125,5 +105,16 @@ namespace Presentation.Controllers
                 return NotFound(new { message = $"Class with ID '{id}' not found" });
             return NoContent();
         }
+
+
+        #region Helper method
+        private Guid GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                throw new UnauthorizedAccessException("User ID not found in token");
+            return userId;
+        }
+        #endregion
     }
 }

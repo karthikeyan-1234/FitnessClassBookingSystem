@@ -21,17 +21,7 @@ namespace Presentation.Controllers
             _bookingService = bookingService;
         }
 
-        private Guid GetCurrentMemberId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var memberId))
-                throw new UnauthorizedAccessException("Member ID not found in token");
-            return memberId;
-        }
-
-        /// <summary>
-        /// Books a class for the authenticated member.
-        /// </summary>
+        // Books a class for the authenticated member.
         [HttpPost]
         public async Task<ActionResult<BookingResponse>> BookClass([FromBody] BookingRequest request)
         {
@@ -40,9 +30,7 @@ namespace Presentation.Controllers
             return CreatedAtAction(nameof(GetBookingsForMember), new { id = booking.BookingId }, booking);
         }
 
-        /// <summary>
-        /// Gets all bookings for the authenticated member.
-        /// </summary>
+        // Gets all bookings for the authenticated member.
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BookingResponse>>> GetBookingsForMember()
         {
@@ -51,9 +39,7 @@ namespace Presentation.Controllers
             return Ok(bookings);
         }
 
-        /// <summary>
-        /// Cancels a booking by ID (only the booking owner can cancel).
-        /// </summary>
+        // Cancels a booking by ID (only the booking owner can cancel).
         [HttpDelete("{id}")]
         public async Task<IActionResult> CancelBooking(Guid id)
         {
@@ -63,5 +49,17 @@ namespace Presentation.Controllers
                 return NotFound(new { message = $"Booking with ID '{id}' not found" });
             return NoContent();
         }
+
+
+        #region Helper method
+        private Guid GetCurrentMemberId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var memberId))
+                throw new UnauthorizedAccessException("Member ID not found in token");
+            return memberId;
+        }
+
+        #endregion
     }
 }
