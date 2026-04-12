@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassAPI Flow Guide | Fitness Class Booking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #F1F5F9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 2rem 1.5rem;
+            color: #0F172A;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .doc-header {
+            margin-bottom: 2.5rem;
+        }
+        .badge {
+            display: inline-block;
+            background: #0F3B3F;
+            color: #A7F3D0;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 0.25rem 0.8rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0F2B3D, #1E4A6F);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .sub {
+            color: #334155;
+            font-size: 1rem;
+            border-left: 3px solid #0F766E;
+            padding-left: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Role legend */
+        .legend {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1.5rem;
+            border: 1px solid #E2E8F0;
+        }
+        .legend-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+        }
+        .role-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: #F8FAFC;
+            padding: 0.25rem 1rem;
+            border-radius: 40px;
+            border: 1px solid #E2E8F0;
+        }
+        .role-instructor {
+            background: #FFEDD5;
+            color: #9A3412;
+            border-color: #FED7AA;
+        }
+        .role-member {
+            background: #E0F2FE;
+            color: #075985;
+            border-color: #BAE6FD;
+        }
+        .role-any {
+            background: #E6F7EC;
+            color: #14532D;
+            border-color: #BBF7D0;
+        }
+        .role-na {
+            background: #F1F5F9;
+            color: #475569;
+            border-color: #CBD5E1;
+        }
+
+        /* Flow card */
+        .flow-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            border: 1px solid #E2E8F0;
+            transition: all 0.1s ease;
+        }
+        .flow-header {
+            background: #F8FAFC;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .flow-title {
+            font-weight: 700;
+            font-size: 1.35rem;
+            color: #0F172A;
+        }
+        .flow-desc {
+            font-size: 0.85rem;
+            color: #475569;
+            background: #EFF6FF;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            padding: 0 0 0.5rem 0;
+        }
+        .flow-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 880px;
+        }
+        .flow-table th {
+            text-align: left;
+            padding: 1rem 1rem;
+            background-color: #F1F5F9;
+            font-weight: 600;
+            color: #1E293B;
+            border-bottom: 1px solid #CBD5E1;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .flow-table td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #E9EDF2;
+            vertical-align: top;
+            color: #1E293B;
+        }
+        .flow-table tr:last-child td {
+            border-bottom: none;
+        }
+        .step-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: #0F766E;
+            font-size: 0.8rem;
+        }
+        .api-badge {
+            display: inline-block;
+            background: #EFF6FF;
+            color: #1E40AF;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.2rem 0.6rem;
+            border-radius: 16px;
+            white-space: nowrap;
+        }
+        .controller-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            background: #F1F5F9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .endpoint-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            background: #F8FAFC;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            color: #B45309;
+            word-break: break-all;
+        }
+        .role-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .role-instructor-badge { background: #FFEDD5; color: #9A3412; }
+        .role-member-badge { background: #E0F2FE; color: #075985; }
+        .role-any-badge { background: #E6F7EC; color: #14532D; }
+        .role-na-badge { background: #F1F5F9; color: #475569; }
+
+        .note {
+            background: #FEF9C3;
+            border-left: 4px solid #EAB308;
+            padding: 0.7rem 1.2rem;
+            margin: 1rem 1.5rem 1.5rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #854D0E;
+        }
+        footer {
+            margin-top: 2.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748B;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 1.5rem;
+        }
+        @media (max-width: 680px) {
+            body { padding: 1rem; }
+            .flow-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="doc-header">
+        <div class="badge">📋 Sequence flow · ClassAPI</div>
+        <h1>Fitness Class Booking<br>System Flow Guide</h1>
+        <div class="sub">End-to-end HTTP interactions between Client, ClassAPI and AccountAPI — role‑based authorization included.</div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <span class="legend-title">🔐 Role required</span>
+        <span class="role-tag role-instructor">👨‍🏫 Instructor</span>
+        <span class="role-tag role-member">👤 Member</span>
+        <span class="role-tag role-any">✅ Any authenticated user</span>
+        <span class="role-tag role-na">⚙️ Internal / N/A</span>
+        <span style="margin-left: auto; font-size:0.75rem;">✨ JWT validated locally in each API</span>
+    </div>
+
+    <!-- FLOW 1: CREATE CLASS -->
+    <div class="flow-card">
+        <div class="flow-header">
+            <div class="flow-title">📌 Flow 1 — Instructor creates a new class</div>
+            <div class="flow-desc">Cross‑service validation (AccountAPI) + class persistence</div>
+        </div>
+        <div class="table-wrapper">
+            <table class="flow-table">
+                <thead>
+                    <tr>
+                        <th>Step</th><th>Description</th><th>API</th><th>Controller</th><th>Endpoint</th><th>Result</th><th>Role Required</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td class="step-number">1</td><td>Client sends class creation request to ClassAPI</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">ClassesController</span></td><td><span class="endpoint-code">POST /api/classes</span></td><td>Request received</td><td><span class="role-badge role-instructor-badge">Instructor</span></td></tr>
+                    <tr><td class="step-number">1.1</td><td>ClassAPI asks AccountAPI if instructor exists</td><td><span class="api-badge">AccountAPI</span></td><td><span class="controller-name">UsersController</span></td><td><span class="endpoint-code">GET /api/users/exists/{instructorId}</span></td><td>Returns true/false</td><td><span class="role-badge role-any-badge">Any (authenticated)</span></td></tr>
+                    <tr><td class="step-number">1.2</td><td>ClassAPI asks AccountAPI for instructor’s name</td><td><span class="api-badge">AccountAPI</span></td><td><span class="controller-name">UsersController</span></td><td><span class="endpoint-code">GET /api/users/{instructorId}</span></td><td>Returns instructor name</td><td><span class="role-badge role-any-badge">Any (authenticated)</span></td></tr>
+                    <tr><td class="step-number">1.3</td><td>ClassAPI validates capacity > 0 and saves the class</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>Class stored in database</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.4</td><td>ClassAPI returns success response to client</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">ClassesController</span></td><td>— (response)</td><td>201 Created + ClassResponse</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="note">⚠️ If step 1.1 returns false, the flow stops and ClassAPI returns an error (e.g., 400 Bad Request).</div>
+    </div>
+
+    <!-- FLOW 2: MEMBER BOOKS CLASS -->
+    <div class="flow-card">
+        <div class="flow-header">
+            <div class="flow-title">📌 Flow 2 — Member books a class</div>
+            <div class="flow-desc">Capacity check + duplicate prevention (all inside ClassAPI)</div>
+        </div>
+        <div class="table-wrapper">
+            <table class="flow-table">
+                <thead>
+                    <tr><th>Step</th><th>Description</th><th>API</th><th>Controller</th><th>Endpoint</th><th>Result</th><th>Role Required</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="step-number">1</td><td>Client sends booking request to ClassAPI</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">BookingsController</span></td><td><span class="endpoint-code">POST /api/bookings</span></td><td>Request received</td><td><span class="role-badge role-member-badge">Member</span></td></tr>
+                    <tr><td class="step-number">1.1</td><td>ClassAPI checks if class exists and has capacity</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>Class found & not full</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.2</td><td>ClassAPI checks if member already booked this class</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>No duplicate booking</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.3</td><td>ClassAPI creates booking and increments booked count</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>Changes saved atomically</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.4</td><td>ClassAPI returns success response to client</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">BookingsController</span></td><td>— (response)</td><td>201 Created + BookingResponse</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FLOW 3: MEMBER VIEWS OWN BOOKINGS -->
+    <div class="flow-card">
+        <div class="flow-header">
+            <div class="flow-title">📌 Flow 3 — Member views own bookings</div>
+            <div class="flow-desc">Read‑only retrieval of member's booking history</div>
+        </div>
+        <div class="table-wrapper">
+            <table class="flow-table">
+                <thead>
+                    <tr><th>Step</th><th>Description</th><th>API</th><th>Controller</th><th>Endpoint</th><th>Result</th><th>Role Required</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="step-number">1</td><td>Client sends GET request to ClassAPI</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">BookingsController</span></td><td><span class="endpoint-code">GET /api/bookings</span></td><td>Request received</td><td><span class="role-badge role-member-badge">Member</span></td></tr>
+                    <tr><td class="step-number">1.1</td><td>ClassAPI retrieves all bookings for the member</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>List of bookings from database</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.2</td><td>ClassAPI returns the list to client</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">BookingsController</span></td><td>— (response)</td><td>200 OK + list of BookingResponse</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FLOW 4: MEMBER SEARCH CLASSES -->
+    <div class="flow-card">
+        <div class="flow-header">
+            <div class="flow-title">📌 Flow 4 — Member searches for classes</div>
+            <div class="flow-desc">Dynamic filtering by date / instructor name + pagination</div>
+        </div>
+        <div class="table-wrapper">
+            <table class="flow-table">
+                <thead>
+                    <tr><th>Step</th><th>Description</th><th>API</th><th>Controller</th><th>Endpoint</th><th>Result</th><th>Role Required</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="step-number">1</td><td>Client sends search query to ClassAPI</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">ClassesController</span></td><td><span class="endpoint-code">GET /api/classes/search?date=&instructorName=&page=1&pageSize=10</span></td><td>Request received</td><td><span class="role-badge role-any-badge">Any (authenticated)</span></td></tr>
+                    <tr><td class="step-number">1.1</td><td>ClassAPI filters classes by date and/or instructor name</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>Filtered list from database</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.2</td><td>ClassAPI applies pagination (skip/take)</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>Paged subset & total count</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.3</td><td>ClassAPI returns paginated result to client</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">ClassesController</span></td><td>— (response)</td><td>200 OK + PagedResult&lt;ClassResponse&gt;</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FLOW 5: MEMBER CANCELS BOOKING -->
+    <div class="flow-card">
+        <div class="flow-header">
+            <div class="flow-title">📌 Flow 5 — Member cancels a booking</div>
+            <div class="flow-desc">Ownership validation + atomic update of BookedCount</div>
+        </div>
+        <div class="table-wrapper">
+            <table class="flow-table">
+                <thead>
+                    <tr><th>Step</th><th>Description</th><th>API</th><th>Controller</th><th>Endpoint</th><th>Result</th><th>Role Required</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="step-number">1</td><td>Client sends DELETE request to ClassAPI</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">BookingsController</span></td><td><span class="endpoint-code">DELETE /api/bookings/{id}</span></td><td>Request received</td><td><span class="role-badge role-member-badge">Member</span></td></tr>
+                    <tr><td class="step-number">1.1</td><td>ClassAPI verifies the booking belongs to the member</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>Ownership confirmed</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.2</td><td>ClassAPI deletes the booking and decrements booked count</td><td><span class="api-badge">ClassAPI</span></td><td>— (internal)</td><td>—</td><td>Changes saved</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                    <tr><td class="step-number">1.3</td><td>ClassAPI returns success response to client</td><td><span class="api-badge">ClassAPI</span></td><td><span class="controller-name">BookingsController</span></td><td>— (response)</td><td>204 No Content</td><td><span class="role-badge role-na-badge">N/A</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Summary note -->
+    <div class="legend" style="background: #F1F5F9; justify-content: center; gap: 1rem;">
+        <span>🔁 Cross‑service communication only in <strong>Flow 1</strong> (steps 1.1, 1.2).</span>
+        <span>🔐 JWT validation performed locally by each API using shared secret.</span>
+        <span>📌 Role column reflects policies: MemberOnly / InstructorOnly / Authorize.</span>
+    </div>
+    <footer>
+        Fitness Class Booking System — Technical flow guide (ClassAPI) <br> All endpoints require valid JWT, roles extracted from token claims.
+    </footer>
+</div>
+</body>
+</html>
