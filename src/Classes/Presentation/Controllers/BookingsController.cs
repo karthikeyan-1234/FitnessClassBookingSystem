@@ -11,7 +11,7 @@ namespace Presentation.Controllers
 {
     [Route("api/bookings")]
     [ApiController]
-    [Authorize(Policy = "MemberOnly")]
+    [Authorize(Roles = "Member")]
     public class BookingsController : ControllerBase
     {
         private readonly IBookingService _bookingService;

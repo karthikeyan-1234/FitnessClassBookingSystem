@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 
 using Application.Interfaces;
@@ -98,15 +99,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("MemberOnly", policy =>
-        policy.RequireClaim("role", "Member"));
+        policy.RequireClaim(ClaimTypes.Role, "Member"));
     options.AddPolicy("InstructorOnly", policy =>
-        policy.RequireClaim("role", "Instructor"));
+        policy.RequireClaim(ClaimTypes.Role, "Instructor"));
 });
 
 var app = builder.Build();
 
 // Configure HTTP pipeline
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

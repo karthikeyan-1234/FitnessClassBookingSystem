@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 
 using Application.Interfaces;
@@ -90,9 +91,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("InstructorOnly", policy =>
-        policy.RequireClaim("role", "Instructor"));
+        policy.RequireClaim(ClaimTypes.Role, "Instructor"));
     options.AddPolicy("MemberOnly", policy =>
-        policy.RequireClaim("role", "Member"));
+        policy.RequireClaim(ClaimTypes.Role, "Member"));
 });
 
 var app = builder.Build();
@@ -128,7 +129,7 @@ using (var scope = app.Services.CreateScope())
 
         var instructor = new Domain.Entities.User
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
             Username = "instructor1",
             PasswordHash = hasher.Hash("password"),
             Role = Domain.Enums.Role.Instructor
@@ -136,7 +137,7 @@ using (var scope = app.Services.CreateScope())
 
         var member = new Domain.Entities.User
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
             Username = "member1",
             PasswordHash = hasher.Hash("password"),
             Role = Domain.Enums.Role.Member
