@@ -41,7 +41,7 @@ namespace AccountsUT
             var existingUser = new User()
             {
                 Id = Guid.NewGuid(),
-                Username = "john_doe",
+                Username = "mail2karthikkn",
                 PasswordHash = "storedHash",
                 Role = Role.Member
             };
@@ -58,6 +58,80 @@ namespace AccountsUT
             result!.Token.Should().Be("jwtToken");
             result!.Username.Should().Be(existingUser.Username);
             result.Role.Should().Be("Member");
+        }
+
+        [Fact]
+        public async Task Login_WithInvalidUsername_ReturnsNull()
+        {
+            var request = new LoginRequest()
+            {
+                Username = "mail2karthikkn",
+                Password = "Pass123"
+            };
+
+            _userRepoMock.Setup(repo => repo.GetByUsernameAsync(request.Username)).ReturnsAsync((User)null!);
+
+            AuthService service = new AuthService(_userRepoMock.Object, _passwordHasherMock.Object, _jwtServiceMock.Object);
+
+            var result = await service.LoginAsync(request);
+
+            result.Should().Be(null);
+        }
+
+
+        [Fact]
+        public async Task Login_WhenCalled_VerifiesPasswordUsingHasher()
+        {
+            var request = new LoginRequest()
+            {
+                Username = "mail2karthikkn",
+                Password = "Pass123"
+            };
+
+            var existingUser = new User()
+            {
+                Id = Guid.NewGuid(),
+                Username = "mail2karthikkn",
+                PasswordHash = "storedHash",
+                Role = Role.Member
+            };
+
+            _userRepoMock.Setup(repo => repo.GetByUsernameAsync(request.Username)).ReturnsAsync(existingUser);
+
+            AuthService service = new AuthService(_userRepoMock.Object, _passwordHasherMock.Object, _jwtServiceMock.Object);
+
+            var result = await service.LoginAsync(request);
+
+            _passwordHasherMock.Verify(pwd => pwd.Verify(request.Password, existingUser.PasswordHash), Times.Once);
+        }
+
+        [Fact]
+        public async Task Login_WhenValid_GeneratesJwtToken()
+        {
+            var request = new LoginRequest()
+            {
+                Username = "mail2karthikkn",
+                Password = "Pass123"
+            };
+
+            var existingUser = new User()
+            {
+                Id = Guid.NewGuid(),
+                Username = "mail2karthikkn",
+                PasswordHash = "storedHash",
+                Role = Role.Member
+            };
+
+            _userRepoMock.Setup(repo => repo.GetByUsernameAsync(request.Username)).ReturnsAsync(existingUser);
+            _jwtServiceMock.Setup(jwt => jwt.GenerateToken(existingUser)).Returns("jwtToken");
+            _jwtServiceMock.Setup(jwt => jwt.GetTokenExpiry()).Returns(DateTime.Now.AddMinutes(30));
+            _passwordHasherMock.Setup(pwd => pwd.Verify(request.Password, existingUser.PasswordHash)).Returns(true);
+
+            AuthService service = new AuthService(_userRepoMock.Object, _passwordHasherMock.Object, _jwtServiceMock.Object);
+
+            await service.LoginAsync(request);
+
+            _jwtServiceMock.Verify(jwt => jwt.GenerateToken(existingUser), Times.Once);
         }
     }
 }
