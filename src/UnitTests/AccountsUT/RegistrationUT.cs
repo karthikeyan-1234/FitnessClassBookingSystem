@@ -119,6 +119,51 @@ namespace AccountsUT
 
         }
 
+        [Fact]
+        public async Task Register_WhenUsernameIsTaken_DoesNotCallAddAsync()
+        {
+            // Arrange
+            var request = new RegisterRequest
+            {
+                Username = "john_doe",
+                Password = "Test@123",
+                Role = Role.Member
+            };
+
+            var existingUser = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "john_doe",
+                PasswordHash = "someHash",
+                Role = Role.Member
+            };
+
+            registerMocks(request);
+
+            // Simulate that username already exists (returns a user, not null)
+            _userRepoMock
+                .Setup(repo => repo.GetByUsernameAsync(request.Username))
+                .ReturnsAsync(existingUser);
+
+            var authService = new AuthService(
+                _userRepoMock.Object,
+                _passwordHasherMock.Object,
+                _jwtServiceMock.Object);
+
+            // Act & Assert
+            try
+            {
+                await authService.RegisterAsync(request);
+            }
+            catch (Exception ex)
+            {
+                ex.Should().BeOfType<DomainException>();
+            }
+
+            // Verify that AddAsync was never called
+            _userRepoMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Never);
+        }
+
     }
 
 }
