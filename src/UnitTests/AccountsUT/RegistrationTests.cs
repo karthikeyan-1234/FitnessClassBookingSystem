@@ -7,23 +7,20 @@ using Domain.Enums;
 using Domain.Interfaces;
 
 using FluentAssertions;
-
-using Microsoft.EntityFrameworkCore.Diagnostics;
-
 using Moq;
 
 using Shared;
 
 namespace AccountsUT
 {
-    public class RegistrationUT
+    public class RegistrationTests
     {
 
         private readonly Mock<IUserRepository> _userRepoMock;
         private readonly Mock<IPasswordHasher> _passwordHasherMock;
         private readonly Mock<IJwtTokenService> _jwtServiceMock;
 
-        public RegistrationUT()
+        public RegistrationTests()
         {
             _userRepoMock = new Mock<IUserRepository>();
             _passwordHasherMock = new Mock<IPasswordHasher>();
