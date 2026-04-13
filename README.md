@@ -84,7 +84,7 @@ docker rm -f fcbs-classes-api
 
 When the Classes API needs to communicate with the Accounts API (both in Docker), use:
 
-**Target Address**: [http://host.docker.internal:8080](http://host.docker.internal:8080)
+**Target Address**: [http://fcbs-accounts-api:8080](http://fcbs-accounts-api:8080)
 
 ### Useful Docker Commands
 
