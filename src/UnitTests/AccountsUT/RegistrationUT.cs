@@ -164,6 +164,41 @@ namespace AccountsUT
             _userRepoMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Never);
         }
 
+
+        [Fact]
+        public async Task Register_WhenCalled_HashesPassword()
+        {
+            // Arrange
+            var request = new RegisterRequest
+            {
+                Username = "john_doe",
+                Password = "Test@123",
+                Role = Role.Member
+            };
+
+            registerMocks(request);
+
+            // Simulate that username already exists (returns a user, not null)
+            _userRepoMock
+                .Setup(repo => repo.GetByUsernameAsync(request.Username))
+                .ReturnsAsync((User)null!);
+
+
+            var authService = new AuthService(
+               _userRepoMock.Object,
+               _passwordHasherMock.Object,
+               _jwtServiceMock.Object);
+
+
+            // Act & Assert
+
+            await authService.RegisterAsync(request);
+
+            _passwordHasherMock.Verify(repo => repo.Hash(request.Password), Times.Once);
+
+
+        }
+
     }
 
 }
