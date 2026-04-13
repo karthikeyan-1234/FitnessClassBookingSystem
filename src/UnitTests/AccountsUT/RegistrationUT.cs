@@ -199,6 +199,50 @@ namespace AccountsUT
 
         }
 
+
+
+        [Fact]
+        public async Task Register_WhenCalled_GeneratesJwtToken()
+        {
+            // Arrange
+            var request = new RegisterRequest
+            {
+                Username = "john_doe",
+                Password = "Test@123",
+                Role = Role.Member
+            };
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = request.Username,
+                PasswordHash = request.Password,
+                Role = Role.Member
+            };
+
+            registerMocks(request);
+
+            // Simulate that username already exists (returns a user, not null)
+            _userRepoMock
+                .Setup(repo => repo.GetByUsernameAsync(request.Username))
+                .ReturnsAsync((User)null!);
+
+
+            var authService = new AuthService(
+               _userRepoMock.Object,
+               _passwordHasherMock.Object,
+               _jwtServiceMock.Object);
+
+
+            // Act & Assert
+
+            await authService.RegisterAsync(request);
+
+            _jwtServiceMock.Verify(repo => repo.GenerateToken(It.IsAny<User>()), Times.Once);
+
+
+        }
+
     }
 
 }
