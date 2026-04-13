@@ -65,6 +65,12 @@ docker run -d `
 
 ## 💡 Quick Tips
 
+### To view error logs of a deployment. Keep running this in a separate console window
+
+```powershell
+docker logs fcbs-classes-api -f
+```
+
 ### Troubleshooting Container Conflicts
 
 If you receive a "Name already in use" error, force-remove existing containers:
