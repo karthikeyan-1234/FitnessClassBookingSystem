@@ -14,4 +14,8 @@
     <Project Path="src/Classes/Infrastructure/Infrastructure.csproj" Id="8cf61a6e-36e1-4f96-a177-98f3cb941a1f" />
     <Project Path="src/Classes/Presentation/Presentation.csproj" Id="b9ead5ec-8f55-4637-a6f1-912cfc879a2d" />
   </Folder>
+  <Folder Name="/src/UnitTests/">
+    <Project Path="src/UnitTests/AccountsUT/AccountsUT.csproj" Id="69ef7109-255b-4878-acff-98d6ba577bb0" />
+    <Project Path="src/UnitTests/ClassesUT/ClassesUT.csproj" Id="77fa00af-cb31-4f68-a9ab-5169ea2aafee" />
+  </Folder>
 </Solution>
