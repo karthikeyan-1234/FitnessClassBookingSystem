@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Classes\Application\Application.csproj" />
     <ProjectReference Include="..\..\Classes\Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\Classes\Presentation\Presentation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
