@@ -29,7 +29,7 @@ namespace Presentation.Controllers
         // Gets paginated list of classes booked by the authenticated member.
         [HttpGet(Name = "MemberGetsMemberClasses")]
         [Authorize(Roles = "Member")]
-        [SwaggerOperation(Summary = "Use Member login to view all classes of all members")]
+        [SwaggerOperation(Summary = "Use Member login to view all classes of current member")]
         public async Task<ActionResult<PagedResult<ClassResponse>>> GetMemberClasses(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
