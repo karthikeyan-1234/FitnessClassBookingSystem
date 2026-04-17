@@ -25,6 +25,7 @@ Map the internal container ports to your local machine:
 
 ```powershell
 docker run -d `
+  --network fitness-net `
   -p 8080:8080 `
   -p 8081:8081 `
   -e ASPNETCORE_ENVIRONMENT=Development `
@@ -53,6 +54,7 @@ Note that we use port `8090` for the host to avoid conflicts with the Accounts A
 
 ```powershell
 docker run -d `
+  --network fitness-net `
   -p 8090:8080 `
   -e ASPNETCORE_ENVIRONMENT=Development `
   --name fcbs-classes-api `
