@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 using Shared;
 
+using Swashbuckle.AspNetCore.Annotations;
+
 namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
@@ -28,6 +30,7 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(AuthResponse), 201)]
         [ProducesResponseType(409)]
         [ProducesResponseType(400)]
+        [SwaggerOperation(Summary = "Register a new Instructor / Member in the system")]
         public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
         {
             try
@@ -49,6 +52,7 @@ namespace Presentation.Controllers
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponse), 200)]
         [ProducesResponseType(401)]
+        [SwaggerOperation(Summary = "Login as an Instructor / Member to get the JWT")]
         public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         {
             var response = await _authService.LoginAsync(request);

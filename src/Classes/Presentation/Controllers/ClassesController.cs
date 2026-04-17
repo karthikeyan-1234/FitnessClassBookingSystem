@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 
 using Shared;
 
+using Swashbuckle.AspNetCore.Annotations;
+
 
 namespace Presentation.Controllers
 {
@@ -22,11 +24,12 @@ namespace Presentation.Controllers
         public ClassesController(IClassService classService)
         {
             _classService = classService;
-        }        
+        }
 
         // Gets paginated list of classes booked by the authenticated member.
-        [HttpGet]
+        [HttpGet(Name = "MemberGetsMemberClasses")]
         [Authorize(Roles = "Member")]
+        [SwaggerOperation(Summary = "Use Member login to view all classes of all members")]
         public async Task<ActionResult<PagedResult<ClassResponse>>> GetMemberClasses(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
@@ -41,7 +44,8 @@ namespace Presentation.Controllers
         }
 
         // Gets a single class by ID.
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "AnyGetsClassById")]
+        [SwaggerOperation(Summary = "Use any login to view a class by class id")]
         public async Task<ActionResult<ClassResponse>> GetClassById(Guid id)
         {
             var classResponse = await _classService.GetClassByIdAsync(id);
@@ -51,7 +55,8 @@ namespace Presentation.Controllers
         }
 
         // Searches classes by date and/or instructor name (paginated).
-        [HttpGet("search")]
+        [HttpGet("search", Name = "AnySearchesClasses")]
+        [SwaggerOperation(Summary = "Use any login to search a class by date, instructorName or just blank values")]
         public async Task<ActionResult<PagedResult<ClassResponse>>> SearchClasses(
             [FromQuery] DateTime? date,
             [FromQuery] string? instructorName,
@@ -74,8 +79,9 @@ namespace Presentation.Controllers
         }
 
         // Creates a new class (Instructor only).
-        [HttpPost]
+        [HttpPost(Name = "InstructorCreatesClass")]
         [Authorize(Roles = "Instructor")]
+        [SwaggerOperation(Summary = "Use Instructor login to create a class")]
         public async Task<ActionResult<ClassResponse>> CreateClass([FromBody] CreateClassRequest request)
         {
             var instructorId = GetCurrentUserId();
@@ -84,8 +90,9 @@ namespace Presentation.Controllers
         }
 
         // Updates an existing class (Instructor only, must be owner).
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "InstructorUpdatesClassById")]
         [Authorize(Roles = "Instructor")]
+        [SwaggerOperation(Summary = "Use Instructor login to update a class")]
         public async Task<ActionResult<ClassResponse>> UpdateClass(Guid id, [FromBody] UpdateClassRequest request)
         {
             var instructorId = GetCurrentUserId();
@@ -96,8 +103,9 @@ namespace Presentation.Controllers
         }
 
         // Deletes a class (Instructor only, must be owner).
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "InstructorDeletesClassById")]
         [Authorize(Roles = "Instructor")]
+        [SwaggerOperation(Summary = "Use Instructor login to delete a class")]
         public async Task<IActionResult> DeleteClass(Guid id)
         {
             var instructorId = GetCurrentUserId();

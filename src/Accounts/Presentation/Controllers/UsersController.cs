@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+using Swashbuckle.AspNetCore.Annotations;
+
 namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
@@ -28,6 +30,7 @@ namespace Presentation.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
+        [SwaggerOperation(Summary = "Use any login to view a user info")]
         public async Task<IActionResult> GetUser(Guid id)
         {
             var user = await _authService.GetUserByIdAsync(id);
@@ -49,6 +52,7 @@ namespace Presentation.Controllers
         /// <returns>True if user exists, false otherwise</returns>
         [HttpGet("exists/{id}")]
         [ProducesResponseType(200)]
+        [SwaggerOperation(Summary = "Use any login check if a user exists")]
         public async Task<ActionResult<bool>> Exists(Guid id)
         {
             var exists = await _authService.UserExistsAsync(id);
@@ -61,6 +65,7 @@ namespace Presentation.Controllers
         /// <returns>List of instructors with Id and Username</returns>
         [HttpGet("instructors")]
         [ProducesResponseType(200)]
+        [SwaggerOperation(Summary = "Use any login get all instructors")]
         public async Task<IActionResult> GetInstructors()
         {
             var instructors = await _authService.GetUsersByRoleAsync(Role.Instructor);
@@ -76,6 +81,7 @@ namespace Presentation.Controllers
         [HttpGet]
         [ProducesResponseType(200)]
         [Authorize(Roles = "Instructor")]
+        [SwaggerOperation(Summary = "Use Instructor login get all users")]
         public async Task<IActionResult> GetAllUsers([FromQuery] string? role = null)
         {
             IEnumerable<Domain.Entities.User> users;

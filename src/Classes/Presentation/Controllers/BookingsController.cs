@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+using Swashbuckle.AspNetCore.Annotations;
+
 namespace Presentation.Controllers
 {
     [Route("api/bookings")]
@@ -23,6 +25,7 @@ namespace Presentation.Controllers
 
         // Books a class for the authenticated member.
         [HttpPost]
+        [SwaggerOperation(Summary = "Use Member login to Book a class")]
         public async Task<ActionResult<BookingResponse>> BookClass([FromBody] BookingRequest request)
         {
             var memberId = GetCurrentMemberId();
@@ -32,6 +35,7 @@ namespace Presentation.Controllers
 
         // Gets all bookings for the authenticated member.
         [HttpGet]
+        [SwaggerOperation(Summary = "Use Member login to get bookings of the logged in Member")]
         public async Task<ActionResult<IEnumerable<BookingResponse>>> GetBookingsForMember()
         {
             var memberId = GetCurrentMemberId();
@@ -41,6 +45,7 @@ namespace Presentation.Controllers
 
         // Cancels a booking by ID (only the booking owner can cancel).
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Use Member login to cancel a booking, of the logged in Member. Other members can't cancel a booking")]
         public async Task<IActionResult> CancelBooking(Guid id)
         {
             var memberId = GetCurrentMemberId();

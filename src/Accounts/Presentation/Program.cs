@@ -25,6 +25,8 @@ builder.Services.AddEndpointsApiExplorer();
 // Swagger with JWT support
 builder.Services.AddSwaggerGen(c =>
 {
+    c.EnableAnnotations();
+
     c.SwaggerDoc("v1", new() { Title = "AccountAPI", Version = "v1" });
 
     // Configure Swagger to accept JWT tokens

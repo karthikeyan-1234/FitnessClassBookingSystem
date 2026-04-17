@@ -27,6 +27,8 @@ builder.Services.AddHttpContextAccessor();
 // Swagger with JWT support
 builder.Services.AddSwaggerGen(c =>
 {
+    c.EnableAnnotations();
+
     c.SwaggerDoc("v1", new() { Title = "ClassAPI", Version = "v1" });
 
     // Configure Swagger to accept JWT tokens
@@ -54,6 +56,8 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+
+    
 });
 
 // DbContext (InMemory)
