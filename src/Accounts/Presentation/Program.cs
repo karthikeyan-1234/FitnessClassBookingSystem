@@ -10,9 +10,12 @@ using Infrastructure;
 using Infrastructure.Repositories;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
+using OpenTelemetry.Trace;
 
 using Shared;
 
@@ -98,6 +101,29 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("MemberOnly", policy =>
         policy.RequireClaim(ClaimTypes.Role, "Member"));
 });
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddSource("AccountAPI")
+        .AddAspNetCoreInstrumentation()
+        .AddSqlClientInstrumentation(options =>
+        {
+            options.EnrichWithSqlCommand = (activity, command) =>
+            {
+                if (command is SqlCommand cmd)
+                {
+                    // Capture actual SQL queries (equivalent to SetDbStatementForText = true)
+                    activity.SetTag("db.statement", cmd.CommandText);
+                    activity.SetTag("db.commandTimeOut", cmd.CommandTimeout);
+                }
+            };
+            options.RecordException = true;
+        })
+        .AddOtlpExporter(opt =>
+        {
+            opt.Endpoint = new Uri("http://otel-collector:4317");
+            opt.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+        }));
 
 var app = builder.Build();
 
