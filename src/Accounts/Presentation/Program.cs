@@ -59,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // DbContext (InMemory)
 builder.Services.AddDbContext<AccountDbContext>(options =>
-    options.UseInMemoryDatabase("AccountDb"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AccountsDBConnection")));
 
 // Dependency Injection - Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
