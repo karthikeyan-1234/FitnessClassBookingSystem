@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 using Shared;
@@ -103,6 +104,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("AccountAPI"))
     .WithTracing(tracing => tracing
         .AddSource("AccountAPI")
         .AddAspNetCoreInstrumentation()
