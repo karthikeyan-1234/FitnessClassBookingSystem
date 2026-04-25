@@ -104,7 +104,14 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService("AccountAPI"))
+    .ConfigureResource(resource => resource
+    .AddService("AccountAPI")
+    .AddAttributes(new Dictionary<string, object>
+    {
+        ["deployment.environment"] = builder.Environment.EnvironmentName,
+        ["service.version"] = "1.0.0"
+    })
+    )
     .WithTracing(tracing => tracing
         .AddSource("AccountAPI")
         .AddAspNetCoreInstrumentation()
