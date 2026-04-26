@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -112,9 +114,11 @@ builder.Services.AddOpenTelemetry()
         ["service.version"] = "1.0.0"
     })
     )
+
+
     .WithTracing(tracing => tracing
         .AddSource("AccountAPI")
-        .AddAspNetCoreInstrumentation()
+        .AddAspNetCoreInstrumentation()        
         .AddSqlClientInstrumentation(options =>
         {
             options.EnrichWithSqlCommand = (activity, command) =>
@@ -132,7 +136,21 @@ builder.Services.AddOpenTelemetry()
         {
             opt.Endpoint = new Uri("http://otel-collector:4317");
             opt.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+        }))
+
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddHttpClientInstrumentation()        
+        .SetExemplarFilter(ExemplarFilterType.TraceBased) // This is the key line
+        .AddOtlpExporter(opt =>
+        {
+            opt.Endpoint = new Uri("http://otel-collector:4317");
+            opt.Protocol = OtlpExportProtocol.Grpc;
         }));
+
+
+;
 
 var app = builder.Build();
 
