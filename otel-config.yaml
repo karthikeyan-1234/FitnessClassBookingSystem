@@ -14,50 +14,39 @@ data:
 
     processors:
       batch:
-        send_batch_size: 1000
-        timeout: 10s
-
-    connectors:
       spanmetrics:
-        histogram:
-          explicit:
-            buckets: [10ms, 100ms, 500ms, 1s, 5s]
-        dimensions:
-          - name: http.method
-          - name: http.status_code
+        metrics_exporter: prometheus
+        latency_histogram_buckets: [100ms, 250ms, 500ms, 1s, 5s]
 
     exporters:
-      # This sends the actual TRACES to Jaeger
+      prometheus:
+        endpoint: "0.0.0.0:8889"
       otlp:
         endpoint: "jaeger:4317"
         tls:
           insecure: true
-      # This exposes the METRICS for Prometheus
-      prometheus:
-        endpoint: "0.0.0.0:8889"
-        namespace: ""
-        resource_to_telemetry_conversion:
-          enabled: true
-      # For debugging: logs traces/metrics to the pod stdout
       debug:
-        verbosity: basic
-
-    extensions:
-      health_check:
-        endpoint: 0.0.0.0:13133
+        verbosity: detailed
+      loki:                                          # <-- NEW exporter
+        endpoint: "http://loki:3100/loki/api/v1/push"
+        labels:
+          resource:
+            service.name: "service_name"              # uses OTEL service name as a label
 
     service:
-      extensions: [health_check]
       pipelines:
         traces:
           receivers: [otlp]
           processors: [batch]
-          # CRITICAL: Must export to both 'otlp' (Jaeger) and 'spanmetrics' (Connector)
-          exporters: [otlp, spanmetrics, debug]
+          exporters: [otlp, debug]
         metrics:
-          receivers: [otlp, spanmetrics]
+          receivers: [otlp]
           processors: [batch]
-          exporters: [prometheus, debug]
+          exporters: [prometheus]
+        logs:                                        # <-- NEW pipeline
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug, loki]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -75,16 +64,7 @@ spec:
     spec:
       containers:
       - name: otel-collector
-        image: otel/opentelemetry-collector-contrib:0.110.0
-        ports:
-        - containerPort: 4317
-        - containerPort: 4318
-        - containerPort: 8889
-        - containerPort: 13133
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 13133
+        image: otel/opentelemetry-collector-contrib:latest
         volumeMounts:
         - name: otel-collector-config-vol
           mountPath: /etc/otelcol-contrib/config.yaml
@@ -102,9 +82,9 @@ spec:
   selector:
     app: otel-collector
   ports:
-    - name: otlp-grpc
-      port: 4317
-    - name: otlp-http
-      port: 4318
-    - name: metrics
-      port: 8889
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+  - name: prometheus-export               # expose the Prometheus metrics endpoint if needed
+    port: 8889
+    targetPort: 8889

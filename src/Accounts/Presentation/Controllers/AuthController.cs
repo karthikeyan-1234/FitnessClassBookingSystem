@@ -15,10 +15,12 @@ namespace Presentation.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger logger)
         {
             _authService = authService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -58,6 +60,8 @@ namespace Presentation.Controllers
             var response = await _authService.LoginAsync(request);
             if (response == null)
                 return Unauthorized(new { message = "Invalid username or password" });
+
+            _logger.LogInformation("User '{Username}' logged in successfully", request.Username);
 
             return Ok(response);
         }

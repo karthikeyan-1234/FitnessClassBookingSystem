@@ -19,6 +19,7 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using OpenTelemetry.Logs;
 
 using Shared;
 
@@ -103,6 +104,17 @@ builder.Services.AddAuthorization(options =>
         policy.RequireClaim(ClaimTypes.Role, "Instructor"));
     options.AddPolicy("MemberOnly", policy =>
         policy.RequireClaim(ClaimTypes.Role, "Member"));
+});
+
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+    logging.AddOtlpExporter(opt =>
+    {
+        opt.Endpoint = new Uri("http://otel-collector:4317");
+        opt.Protocol = OtlpExportProtocol.Grpc;
+    });
 });
 
 builder.Services.AddOpenTelemetry()
