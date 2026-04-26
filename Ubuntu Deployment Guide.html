@@ -303,6 +303,37 @@ spec:
         </details>
     </section>
 
+	<section id="script">
+	
+	<h2><i class="icon">🚀</i>Section 4: .NET 9 Account API</h2>
+
+        <details id="script-code">
+            <summary>#!/bin/bash
+
+echo "--- 🚀 Starting Deployment of AccountAPI ---"
+
+# 1. Pull the latest code from GitHub
+echo "📥 Pulling latest changes..."
+git pull origin main
+
+# 2. Build the image into the Kubernetes namespace
+# Note: We point to the src folder for context
+echo "🛠️ Building Docker image..."
+sudo nerdctl -n k8s.io build -t account-api:v1 -f src/Accounts/Presentation/Dockerfile src/
+
+# 3. Restart the Kubernetes Deployment
+echo "♻️ Restarting K8s Pods..."
+kubectl rollout restart deployment account-api-deploy
+
+# 4. Check status
+echo "⏱️ Waiting for rollout..."
+kubectl rollout status deployment account-api-deploy
+
+echo "✅ Deployment Complete!"</summary>
+        </details>
+	
+	</section>
+
     <section id="cli">
         <h2><i class="icon">💻</i>Section 5: The CLI Masterlist</h2>
         <p>Essential commands for moving through the project directories and managing the cluster.</p>
