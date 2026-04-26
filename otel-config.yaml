@@ -11,31 +11,53 @@ data:
             endpoint: 0.0.0.0:4317
           http:
             endpoint: 0.0.0.0:4318
+
     processors:
       batch:
-# This generates the metrics Jaeger needs from your traces
+        send_batch_size: 1000
+        timeout: 10s
+
+    connectors:
       spanmetrics:
-        metrics_exporter: prometheus
-        latency_histogram_buckets: [100ms, 250ms, 500ms, 1s, 5s]
+        histogram:
+          explicit:
+            buckets: [10ms, 100ms, 500ms, 1s, 5s]
+        dimensions:
+          - name: http.method
+          - name: http.status_code
+
     exporters:
-      prometheus:
-        endpoint: "0.0.0.0:8889" # Prometheus will scrape this
+      # This sends the actual TRACES to Jaeger
       otlp:
         endpoint: "jaeger:4317"
         tls:
           insecure: true
+      # This exposes the METRICS for Prometheus
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: ""
+        resource_to_telemetry_conversion:
+          enabled: true
+      # For debugging: logs traces/metrics to the pod stdout
       debug:
-        verbosity: detailed
+        verbosity: basic
+
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
     service:
+      extensions: [health_check]
       pipelines:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp, debug]
+          # CRITICAL: Must export to both 'otlp' (Jaeger) and 'spanmetrics' (Connector)
+          exporters: [otlp, spanmetrics, debug]
         metrics:
-          receivers: [otlp]
+          receivers: [otlp, spanmetrics]
           processors: [batch]
-          exporters: [prometheus]       
+          exporters: [prometheus, debug]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -53,7 +75,16 @@ spec:
     spec:
       containers:
       - name: otel-collector
-        image: otel/opentelemetry-collector-contrib:latest
+        image: otel/opentelemetry-collector-contrib:0.110.0
+        ports:
+        - containerPort: 4317
+        - containerPort: 4318
+        - containerPort: 8889
+        - containerPort: 13133
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133
         volumeMounts:
         - name: otel-collector-config-vol
           mountPath: /etc/otelcol-contrib/config.yaml
@@ -71,6 +102,9 @@ spec:
   selector:
     app: otel-collector
   ports:
-  - name: otlp-grpc
-    port: 4317
-    targetPort: 4317
+    - name: otlp-grpc
+      port: 4317
+    - name: otlp-http
+      port: 4318
+    - name: metrics
+      port: 8889
