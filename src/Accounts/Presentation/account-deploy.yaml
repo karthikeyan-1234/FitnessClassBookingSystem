@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-api-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-api
+  template:
+    metadata:
+      labels:
+        app: account-api
+    spec:
+      containers:
+      - name: account-api
+        image: account-api:v2  # Points to the new build
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=sql-server-service;Database=AccountDb;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://otel-collector:4317"
+        - name: OTEL_SERVICE_NAME
+          value: "AccountAPI" # Force the service name in Jaeger
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: account-api-service
+spec:
+  type: NodePort
+  selector:
+    app: account-api
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30005

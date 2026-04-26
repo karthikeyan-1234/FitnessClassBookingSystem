@@ -11,21 +11,21 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy project files for restoration (Optimizes Docker layer caching)
-COPY ["Accounts/Presentation/Presentation.csproj", "Accounts/Presentation/"]
-COPY ["Accounts/Application/Application.csproj", "Accounts/Application/"]
-COPY ["Accounts/Domain/Domain.csproj", "Accounts/Domain/"]
-COPY ["Accounts/Infrastructure/Infrastructure.csproj", "Accounts/Infrastructure/"]
+COPY ["src/Accounts/Presentation/Presentation.csproj", "src/Accounts/Presentation/"]
+COPY ["src/Accounts/Application/Application.csproj", "src/Accounts/Application/"]
+COPY ["src/Accounts/Domain/Domain.csproj", "src/Accounts/Domain/"]
+COPY ["src/Accounts/Infrastructure/Infrastructure.csproj", "src/Accounts/Infrastructure/"]
 # If you have shared projects, add them here:
 # COPY ["Shared/Shared.csproj", "Shared/"]
 
 # Restore dependencies
-RUN dotnet restore "Accounts/Presentation/Presentation.csproj"
+RUN dotnet restore "src/Accounts/Presentation/Presentation.csproj"
 
 # Copy the entire source code
 COPY . .
 
 # Build the Presentation project
-WORKDIR "/src/Accounts/Presentation"
+WORKDIR "/src/src/Accounts/Presentation"
 RUN dotnet build "Presentation.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Publish stage
