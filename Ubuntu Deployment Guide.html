@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Architecture Manual | FitnessClass</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #2563eb;
+            --accent: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --text: #334155;
+            --terminal-bg: #1e293b;
+        }
+
+        body { font-family: 'Inter', -apple-system, system-ui, sans-serif; line-height: 1.6; margin: 0; background-color: var(--bg); color: var(--text); scroll-behavior: smooth; }
+
+        /* Frozen Top Menu */
+        nav { position: fixed; top: 0; width: 100%; background: var(--primary); color: white; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        nav ul { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; }
+        nav li { position: relative; }
+        nav a { display: block; padding: 18px 25px; color: #94a3b8; text-decoration: none; font-weight: 600; transition: 0.3s; font-size: 0.9rem; }
+        nav a:hover { color: white; background: rgba(255,255,255,0.1); }
+        
+        /* Dropdowns */
+        nav li ul { display: none; position: absolute; background: var(--primary); min-width: 240px; border-radius: 0 0 8px 8px; border: 1px solid rgba(255,255,255,0.1); }
+        nav li:hover ul { display: block; }
+        nav li ul li a { padding: 12px 20px; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); }
+
+        .container { max-width: 1200px; margin: 100px auto 60px; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+
+        h1 { font-size: 2.8rem; color: var(--primary); border-bottom: 5px solid var(--secondary); padding-bottom: 15px; margin-bottom: 40px; text-align: center; }
+        h2 { font-size: 1.8rem; color: var(--primary); margin-top: 50px; display: flex; align-items: center; background: #f1f5f9; padding: 15px; border-radius: 8px; }
+        h3 { color: var(--secondary); margin-top: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+
+        .icon { margin-right: 15px; font-style: normal; }
+
+        /* Infrastructure Summary Card */
+        .card { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; background: #1e293b; color: white; padding: 30px; border-radius: 12px; margin: 20px 0; }
+        .card-item { font-family: 'Consolas', monospace; font-size: 0.9rem; }
+        .card-item b { color: #38bdf8; display: block; margin-bottom: 5px; text-transform: uppercase; font-size: 0.75rem; }
+
+        /* External Links Header */
+        .link-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }
+        .link-item { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; text-decoration: none; color: #166534; font-weight: bold; }
+        .link-item:hover { background: #dcfce7; }
+
+        /* Auto-Collapse Sections */
+        details { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; margin: 20px 0; transition: 0.3s; }
+        details[open] { border-color: var(--secondary); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        summary { cursor: pointer; font-weight: 700; color: var(--primary); padding: 15px; display: flex; align-items: center; list-style: none; }
+        summary::before { content: '▶'; margin-right: 12px; color: var(--secondary); transition: transform 0.2s; font-size: 0.8rem; }
+        details[open] summary::before { transform: rotate(90deg); }
+
+        /* Panels */
+        .panel { padding: 25px; border-radius: 10px; margin: 25px 0; position: relative; border: 1px solid; }
+        .mistake { border-color: #fecaca; background: #fff5f5; }
+        .solution { border-color: #bbf7d0; background: #f0fff4; }
+        .instruction { border-color: #bae6fd; background: #f0f9ff; }
+        
+        .label { position: absolute; top: -14px; left: 20px; padding: 4px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; color: white; }
+        .lbl-err { background: var(--accent); }
+        .lbl-sol { background: var(--success); }
+        .lbl-step { background: var(--secondary); }
+
+        pre { margin: 0 !important; border-radius: 0 0 8px 8px !important; }
+        code { font-family: 'Fira Code', 'Courier New', monospace !important; }
+
+        .terminal-header { background: #334155; color: #cbd5e1; padding: 8px 15px; border-radius: 8px 8px 0 0; font-family: monospace; font-size: 0.8rem; border-bottom: 1px solid #475569; display: flex; justify-content: space-between; }
+
+        footer { text-align: center; margin-top: 100px; padding: 40px; border-top: 1px solid #e2e8f0; color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <ul>
+        <li><a href="#infra">🖥️ Infrastructure</a></li>
+        <li><a href="#access">🔌 Access</a>
+            <ul>
+                <li><a href="#ssh-vscode">SSH via VS Code</a></li>
+                <li><a href="#gui-mgmt">Start/Stop GUI</a></li>
+                <li><a href="#samba">Samba (Z: Drive)</a></li>
+            </ul>
+        </li>
+        <li><a href="#database">🗄️ Database</a>
+            <ul>
+                <li><a href="#sql-yml">SQL YAML</a></li>
+                <li><a href="#sql-ops">SQL Operations</a></li>
+            </ul>
+        </li>
+        <li><a href="#observability">📊 Observability</a>
+            <ul>
+                <li><a href="#jaeger">Jaeger 1.60</a></li>
+                <li><a href="#otel">OTel Collector</a></li>
+            </ul>
+        </li>
+        <li><a href="#api">🚀 Account API</a>
+            <ul>
+                <li><a href="#api-yml">Deployment YAML</a></li>
+                <li><a href="#api-code">C# Telemetry</a></li>
+            </ul>
+        </li>
+        <li><a href="#cli">💻 CLI Masterlist</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <h1>FitnessClass Architecture Guide</h1>
+
+    <section id="infra">
+        <h2><i class="icon">🖥️</i>Section 0: Server Specifications</h2>
+        <p>The <b>ArjunServer</b> is a high-availability development workstation. All persistent data resides on NVMe storage.</p>
+        <div class="card">
+            <div class="card-item"><b>Primary IP</b> 192.168.1.16</div>
+            <div class="card-item"><b>OS Kernel</b> Ubuntu 22.04 LTS (Linux 5.15+)</div>
+            <div class="card-item"><b>CPU Hardware</b> AMD Ryzen 5 3600 (12 Threads)</div>
+            <div class="card-item"><b>Memory</b> 32GB DDR4 3200MHz</div>
+            <div class="card-item"><b>I/O Mount</b> /mnt/ssd-fast/ (NVMe SSD)</div>
+            <div class="card-item"><b>Project Root</b> /mnt/ssd-fast/FitnessClassBookingSystem/</div>
+        </div>
+        
+        <div class="link-grid">
+            <a href="http://192.168.1.16:30005/swagger/index.html" class="link-item" target="_blank">🌐 Account API Swagger</a>
+            <a href="http://192.168.1.16:30006/search" class="link-item" target="_blank">🔍 Jaeger Trace UI</a>
+            <div class="link-item" style="color:#1e293b; background:#f1f5f9; border-color:#cbd5e1;">💾 SQL: 192.168.1.16, 31433</div>
+        </div>
+    </section>
+
+    <section id="access">
+        <h2><i class="icon">🔌</i>Section 1: Developer Access</h2>
+        
+        <h3 id="ssh-vscode">SSH into Server via Visual Studio Code</h3>
+        <div class="panel instruction">
+            <span class="label lbl-step">Step-by-Step</span>
+            1. Install the <b>Remote - SSH</b> extension in VS Code.<br>
+            2. Press <code>F1</code> &rarr; <code>Remote-SSH: Connect to Host...</code><br>
+            3. Type: <code>arjun@192.168.1.16</code><br>
+            4. Enter password and open folder: <code>/mnt/ssd-fast/FitnessClassBookingSystem</code>
+        </div>
+
+        <h3 id="gui-mgmt">Managing the Linux GUI (Display Manager)</h3>
+        <p>To maximize performance during heavy builds, you may wish to stop the Linux Desktop environment.</p>
+        <div class="terminal-header"><span>Bash - System Control</span></div>
+        <pre><code class="language-bash"># To STOP the GUI (Saves ~1GB RAM)
+sudo systemctl stop gdm3
+
+# To START the GUI
+sudo systemctl start gdm3</code></pre>
+
+        <h3 id="samba">Samba Setup (The Z: Drive Bridge)</h3>
+        <details>
+            <summary>View smb.conf & Windows Mapping</summary>
+            <div class="panel instruction">
+                <b>Linux Config:</b> Edit <code>/etc/samba/smb.conf</code> and add:
+            </div>
+            <pre><code class="language-bash">[FitnessBooking]
+   path = /mnt/ssd-fast/FitnessClassBookingSystem
+   valid users = arjun
+   read only = no
+   create mask = 0775</code></pre>
+            <p><b>Windows:</b> Right-click "This PC" &rarr; "Map Network Drive" &rarr; Drive: <b>Z:</b> &rarr; Folder: <code>\\192.168.1.16\FitnessBooking</code></p>
+        </details>
+    </section>
+
+    <section id="database">
+        <h2><i class="icon">🗄️</i>Section 2: SQL Server Database</h2>
+        <p>Deployment of MS SQL Server 2022 with NodePort for external SSMS connectivity.</p>
+
+        <details id="sql-yml">
+            <summary>SQL Deployment YAML (Auto-Collapsed)</summary>
+            <pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sql-server-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sql-server
+  template:
+    metadata:
+      labels:
+        app: sql-server
+    spec:
+      containers:
+      - name: mssql
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_SA_PASSWORD
+          value: "YourPassword123!"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-server-service
+spec:
+  type: NodePort
+  ports:
+    - port: 1433
+      nodePort: 31433
+  selector:
+    app: sql-server</code></pre>
+        </details>
+
+        <h3 id="sql-ops">Common SQL CLI Operations</h3>
+        <div class="terminal-header"><span>Kubectl Commands</span></div>
+        <pre><code class="language-bash"># Connect to SQL shell inside the pod
+kubectl exec -it $(kubectl get pod -l app=sql-server -o name) -- /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourPassword123!
+
+# Create the database manually if migrations aren't used
+CREATE DATABASE AccountDb;
+GO</code></pre>
+    </section>
+
+    <section id="observability">
+        <h2><i class="icon">📊</i>Section 3: Full-Stack Tracing</h2>
+        
+        <h3 id="jaeger">Jaeger 1.60 (Pinned Version)</h3>
+        <div class="panel reasoning">
+            <span class="label label-why">Why v1.60?</span>
+            Newer "latest" builds of Jaeger have a CSS bug causing white text on white backgrounds. Version 1.60 is the stable choice for ArjunServer.
+        </div>
+        <details>
+            <summary>Jaeger 1.60 Deployment YAML</summary>
+            <pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+spec:
+  template:
+    spec:
+      containers:
+      - name: jaeger
+        image: jaegertracing/all-in-one:1.60
+        env:
+        - name: COLLECTOR_OTLP_ENABLED
+          value: "true"</code></pre>
+        </details>
+
+        <h3 id="otel">OpenTelemetry Collector</h3>
+        <details id="otel-yml">
+            <summary>Collector Pipeline Config</summary>
+            <pre><code class="language-yaml">receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+exporters:
+  otlp:
+    endpoint: "jaeger:4317"
+    tls:
+      insecure: true
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlp]</code></pre>
+        </details>
+    </section>
+
+    <section id="api">
+        <h2><i class="icon">🚀</i>Section 4: .NET 9 Account API</h2>
+
+        <details id="api-yml">
+            <summary>API Deployment YAML (NodePort: 30005)</summary>
+            <pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-api-deploy
+spec:
+  template:
+    spec:
+      containers:
+      - name: account-api
+        image: account-api:v3
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=sql-server-service;Database=AccountDb;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True"
+        - name: OTEL_SERVICE_NAME
+          value: "AccountAPI"</code></pre>
+        </details>
+
+        <h3 id="api-code">Program.cs Telemetry Implementation</h3>
+        <details>
+            <summary>C# Code (Resource & Exemplars)</summary>
+            <pre><code class="language-csharp">builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService("AccountAPI"))
+    .WithTracing(t => t
+        .AddAspNetCoreInstrumentation()
+        .AddSqlClientInstrumentation(opt => opt.SetDbStatementForText = true)
+        .AddOtlpExporter(o => o.Endpoint = new Uri("http://otel-collector:4317")))
+    .WithMetrics(m => m
+        .AddRuntimeInstrumentation()
+        .SetExemplarFilter(ExemplarFilterType.TraceBased)
+        .AddOtlpExporter());</code></pre>
+        </details>
+    </section>
+
+    <section id="cli">
+        <h2><i class="icon">💻</i>Section 5: The CLI Masterlist</h2>
+        <p>Essential commands for moving through the project directories and managing the cluster.</p>
+        
+        <div class="terminal-header"><span>Navigation from arjun@arjunserver:~</span></div>
+        <pre><code class="language-bash"># Go to Project Root
+cd /mnt/ssd-fast/FitnessClassBookingSystem
+
+# Go to Accounts API Source
+cd /mnt/ssd-fast/FitnessClassBookingSystem/src/Accounts/Presentation
+
+# Go to Deployment YAMLs
+cd /mnt/ssd-fast/FitnessClassBookingSystem/src/Accounts</code></pre>
+
+        <div class="terminal-header"><span>Kubernetes Status & Troubleshooting</span></div>
+        <pre><code class="language-bash"># Check all Pods status
+kubectl get pods
+
+# Live Tail Logs for the API
+kubectl logs -f deployment/account-api-deploy
+
+# Check Deployment History
+kubectl rollout history deployment/account-api-deploy
+
+# Complete System Refresh (Apply all YAMLs)
+kubectl apply -f jaeger.yaml
+kubectl apply -f otel-config.yaml
+kubectl apply -f account-deploy.yaml</code></pre>
+
+        <div class="panel mistake">
+            <span class="label lbl-err">Critical Failure Point</span>
+            "I built the image with nerdctl, but Kubectl says ImagePullBackOff!"
+            <span class="label-fix" style="display:block; margin-top:10px;">✅ Solution</span>
+            You must include the Kubernetes namespace during build: <br>
+            <code>sudo nerdctl <b>-n k8s.io</b> build -t account-api:v3 .</code>
+        </div>
+    </section>
+
+    <footer>
+        &copy; 2026 Karthikeyan Natarajan | Senior Technical Architect | 15 Years Exp.
+    </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+</body>
+</html>
